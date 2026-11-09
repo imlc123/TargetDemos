@@ -1,0 +1,101 @@
+// Tiny chiptune sound effects made with the Web Audio API. No audio files.
+// The audio context is only created after the first tap or key press.
+
+let ctx = null;
+let master = null;
+let noiseBuf = null;
+let muted = false;
+
+function tone(freq, { to = null, dur = 0.1, type = 'square', vol = 0.2, delay = 0 } = {}) {
+  const t = ctx.currentTime + delay;
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t);
+  if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g);
+  g.connect(master);
+  o.start(t);
+  o.stop(t + dur + 0.03);
+}
+
+function noise({ dur = 0.1, vol = 0.2, delay = 0, hp = 900 } = {}) {
+  if (!noiseBuf) {
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const t = ctx.currentTime + delay;
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuf;
+  const f = ctx.createBiquadFilter();
+  f.type = 'highpass';
+  f.frequency.value = hp;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f);
+  f.connect(g);
+  g.connect(master);
+  src.start(t);
+  src.stop(t + dur + 0.02);
+}
+
+const arp = (notes, step, opts) => notes.forEach((n, i) => tone(n, { ...opts, delay: i * step }));
+
+const SOUNDS = {
+  shoot: () => tone(600, { to: 950, dur: 0.06, vol: 0.1 }),
+  tink: () => tone(1500, { to: 1100, dur: 0.07, type: 'triangle', vol: 0.15 }),
+  thud: () => { noise({ dur: 0.05, vol: 0.12, hp: 400 }); tone(260, { to: 160, dur: 0.08, vol: 0.1 }); },
+  dash: () => tone(220, { to: 760, dur: 0.18, type: 'sawtooth', vol: 0.08 }),
+  dip: () => tone(760, { to: 190, dur: 0.32, vol: 0.09 }),
+  shatter: () => { noise({ dur: 0.28, vol: 0.3, hp: 1800 }); tone(1300, { to: 260, dur: 0.22, type: 'triangle', vol: 0.15 }); },
+  freed: () => arp([523, 659, 784, 1047], 0.075, { dur: 0.14, type: 'triangle', vol: 0.18 }),
+  parry: () => { tone(880, { to: 1760, dur: 0.08, vol: 0.12 }); tone(1320, { dur: 0.14, type: 'triangle', vol: 0.15, delay: 0.04 }); },
+  hurt: () => tone(170, { to: 85, dur: 0.22, type: 'sawtooth', vol: 0.13 }),
+  shutter: () => { noise({ dur: 0.03, vol: 0.25, hp: 2500 }); noise({ dur: 0.04, vol: 0.2, hp: 2500, delay: 0.07 }); },
+  rec: () => tone(1000, { dur: 0.04, type: 'sine', vol: 0.04 }),
+  fire: () => tone(320, { to: 150, dur: 0.14, type: 'sawtooth', vol: 0.06 }),
+  stun: () => arp([660, 990, 1320], 0.06, { dur: 0.1, type: 'triangle', vol: 0.13 }),
+  onboard: () => tone(420, { to: 70, dur: 0.9, type: 'sawtooth', vol: 0.13 }),
+  clear: () => { arp([523, 659, 784], 0.12, { dur: 0.14, vol: 0.12 }); tone(1047, { dur: 0.45, type: 'triangle', vol: 0.18, delay: 0.36 }); },
+  bloom: () => arp([392, 523, 659, 784, 1047, 1319], 0.09, { dur: 0.2, type: 'triangle', vol: 0.14 }),
+  click: () => tone(440, { dur: 0.04, vol: 0.07 }),
+  pop: () => tone(900, { to: 1300, dur: 0.05, type: 'triangle', vol: 0.06 }),
+};
+
+export const Sfx = {
+  unlock() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      try {
+        ctx = new AC();
+        master = ctx.createGain();
+        master.gain.value = 0.4;
+        master.connect(ctx.destination);
+      } catch (e) {
+        ctx = null;
+        return;
+      }
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+  },
+  play(name) {
+    if (muted || !ctx || ctx.state !== 'running') return;
+    try {
+      SOUNDS[name]?.();
+    } catch (e) {
+      /* never let audio break the game */
+    }
+  },
+  setMuted(m) {
+    muted = m;
+  },
+  get muted() {
+    return muted;
+  },
+};
