@@ -4,6 +4,10 @@ import { MenuScene } from './scenes/MenuScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { UIScene } from './scenes/UIScene.js';
 import { CardScene } from './scenes/CardScene.js';
+import { DialogueScene } from './scenes/DialogueScene.js';
+import { GalleryScene } from './scenes/GalleryScene.js';
+import { IntroScene } from './scenes/IntroScene.js';
+import { CreateScene } from './scenes/CreateScene.js';
 import { Sfx } from './systems/Sfx.js';
 
 const config = {
@@ -17,7 +21,8 @@ const config = {
   physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: DEBUG } },
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 4 },
-  scene: [BootScene, MenuScene, GameScene, UIScene, CardScene],
+  dom: { createContainer: true },
+  scene: [BootScene, MenuScene, IntroScene, CreateScene, GameScene, UIScene, CardScene, DialogueScene, GalleryScene],
 };
 
 // Audio can only start after the player touches or presses something.

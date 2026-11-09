@@ -8,8 +8,8 @@ const RAYS = 14;
 
 // The Aesthetic Influencer: always filming. Only a hit from behind breaks the phone.
 export class Influencer extends NPC {
-  constructor(scene, x, y, look) {
-    super(scene, x, y, 'influencer', look);
+  constructor(scene, x, y, person) {
+    super(scene, x, y, 'influencer', person);
     const C = TUNING.influencer;
     this.facing = (Math.floor(Math.random() * 8) * Math.PI) / 4;
     this.targetFacing = this.facing;
@@ -26,10 +26,6 @@ export class Influencer extends NPC {
       .text(x, y, 'REC', { fontFamily: FONT, fontSize: '8px', color: '#ff3b4e', resolution: 2 })
       .setOrigin(0, 0.5)
       .setVisible(false);
-  }
-
-  phoneOffset() {
-    return { x: Math.cos(this.facing) * 7, y: -12 + Math.sin(this.facing) * 5 };
   }
 
   // A pebble breaks the phone if it travels the same way she is facing (comes from behind).
@@ -59,7 +55,7 @@ export class Influencer extends NPC {
 
     // camera cone (rays stop at walls, hedges, trees)
     const ex = this.x;
-    const ey = this.y - 8;
+    const ey = this.y - 12;
     const half = Phaser.Math.DegToRad(C.coneHalfAngle);
     this.cone.length = 0;
     this.cone.push({ x: ex, y: ey });
@@ -91,11 +87,11 @@ export class Influencer extends NPC {
     }
 
     // ring light + REC indicator
-    const o = this.phoneOffset();
-    this.ring.setPosition(this.x + o.x, this.y + o.y).setDepth(100 + this.y + 0.7);
+    const o = this.phonePos();
+    this.ring.setPosition(o.x, o.y).setDepth(100 + this.y + 0.7);
     const blink = seen && Math.floor(s.time.now / 250) % 2 === 0;
-    this.rec.setVisible(blink).setPosition(this.x - 8, this.y - 24).setDepth(5001);
-    this.recText.setVisible(blink).setPosition(this.x - 5, this.y - 24).setDepth(5001);
+    this.rec.setVisible(blink).setPosition(this.x - 8, this.y - 38).setDepth(5001);
+    this.recText.setVisible(blink).setPosition(this.x - 5, this.y - 38).setDepth(5001);
   }
 
   nextPose() {
@@ -134,7 +130,7 @@ export class Influencer extends NPC {
     }
     // Spotted from the front: she turns to face you.
     const p = this.scene.player;
-    this.targetFacing = Math.atan2(p.cy - (this.y - 8), p.cx - this.x);
+    this.targetFacing = Math.atan2(p.cy - (this.y - 12), p.cx - this.x);
     this.poseT = Math.max(this.poseT, 1.8);
     this.walkT = 0;
     this.say(pick(this.lines.spotted), 1.8);

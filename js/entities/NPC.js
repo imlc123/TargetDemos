@@ -1,34 +1,40 @@
 import { TUNING, FONT, TILE } from '../config.js';
 import { LINES, pick } from '../data/lines.js';
+import { KINDS, PHONE_AT } from '../art/sprites.js';
 import { Sfx } from '../systems/Sfx.js';
 
 const { Vector2 } = Phaser.Math;
 const rand = Phaser.Math.FloatBetween;
 
 // Shared behavior for every "target demographic": the phone, speech bubbles,
-// getting freed, and what freed people do afterwards.
+// getting freed, talking, and what freed people do afterwards.
 export class NPC extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, kind, look) {
-    super(scene, x, y, `${kind}_${look}_gray_0`);
+  constructor(scene, x, y, kind, person) {
+    super(scene, x, y, `${person.tex}_gray`, 'idle0');
     this.kind = kind;
-    this.look = look;
+    this.person = person;
     this.variant = 'gray';
-    this.frameIdx = 0;
+    this.lockedPose = KINDS[kind].locked;
     this.animT = Math.random();
+    this.walkIdx = 0;
+    this.idleIdx = 0;
+    this.pose = null;
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 1);
-    this.body.setSize(10, 5).setOffset(3, 15);
+    this.body.setSize(12, 6).setOffset(6, 26);
 
     this.state = 'locked';
     this.lines = LINES[kind];
     this.shadow = scene.add.image(x, y, 'shadow').setDepth(4);
     this.phone = scene.add.rectangle(x, y, 3, 5, 0x7fd1ff).setStrokeStyle(1, 0x15151c);
-    this.glow = scene.add.image(x, y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setScale(0.55).setAlpha(0.5).setTint(0x7fd1ff);
+    this.glow = scene.add.image(x, y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setScale(0.6).setAlpha(0.5).setTint(0x7fd1ff);
     this.bubble = null;
     this.bubbleT = 0;
     this.talkT = rand(0.5, 4);
-    this.bubbleLift = 22;
+    this.bubbleLift = 38;
+    this.talked = false;
+    this.talking = false;
 
     // freed-state AI
     this.mode = null;
@@ -42,12 +48,15 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     return this.x;
   }
   get cy() {
-    return this.y - 10;
+    return this.y - 15;
   }
 
-  // Where the phone is held, relative to the feet. Subclasses override.
-  phoneOffset() {
-    return { x: 6, y: -14 };
+  // Where the phone is held (world coords), from the arm pose.
+  phonePos(frame) {
+    const pose = frame === 'cheer' || frame === 'wave' ? 'up' : this.lockedPose;
+    const [hx, hy] = PHONE_AT[pose] || PHONE_AT.phone;
+    const px = this.flipX ? 23 - hx : hx;
+    return { x: this.x - 12 + px + 0.5, y: this.y - 32 + hy + 0.5 };
   }
 
   // Whether a pebble flying in direction (dx, dy) would break the phone right now.
@@ -85,36 +94,38 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
 
   // ---------- main loop ----------
   update(dt) {
+    this.pose = null;
     if (this.state === 'locked') this.updateLocked(dt);
     else this.updateFreed(dt);
 
     // talking
     this.talkT -= dt;
-    if (this.talkT <= 0) {
+    if (this.talkT <= 0 && !this.talking) {
       const near = this.playerDist() < 120;
       if (this.state === 'locked' && near) {
         this.say(pick(this.lines.talk), 2.8);
         this.talkT = rand(4.5, 7.5);
-      } else if (this.state === 'freed' && this.mode !== 'chat' && near && Math.random() < 0.5) {
-        this.say(pick(Math.random() < 0.5 ? LINES.thanks : this.lines.freed), 2.4);
+      } else if (this.state === 'freed' && this.mode !== 'chat' && near && !this.talked && Math.random() < 0.5) {
+        this.say(pick(LINES.thanks), 2.2);
         this.talkT = rand(6, 10);
       } else {
         this.talkT = rand(1.5, 3);
       }
     }
 
-    // walk animation
+    // animation
     const moving = this.body.velocity.lengthSq() > 25;
-    if (moving) {
-      this.animT += dt;
-      if (this.animT > 0.16) {
-        this.animT = 0;
-        this.frameIdx ^= 1;
-      }
+    this.animT += dt;
+    let frame;
+    if (this.pose) frame = this.pose;
+    else if (moving) {
+      if (this.animT > 0.12) { this.animT = 0; this.walkIdx = (this.walkIdx + 1) % 4; }
+      frame = `walk${this.walkIdx}`;
     } else {
-      this.frameIdx = 0;
+      if (this.animT > 0.45) { this.animT = 0; this.idleIdx ^= 1; }
+      frame = `idle${this.idleIdx}`;
     }
-    this.setTexture(`${this.kind}_${this.look}_${this.variant}_${this.frameIdx}`);
+    if (this.frame.name !== frame) this.setFrame(frame);
     if (Math.abs(this.body.velocity.x) > 4) this.setFlipX(this.body.velocity.x < 0);
 
     // attachments
@@ -122,9 +133,10 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.setDepth(d);
     this.shadow.setPosition(this.x, this.y - 1);
     if (this.phone) {
-      const o = this.phoneOffset();
-      this.phone.setPosition(this.x + o.x, this.y + o.y).setDepth(d + 0.5);
-      this.glow.setPosition(this.x + o.x, this.y + o.y).setDepth(d + 0.6);
+      const pp = this.phonePos(frame);
+      const bob = frame === 'idle1' || frame === 'walk2' ? 1 : 0;
+      this.phone.setPosition(pp.x, pp.y + bob).setDepth(d + 0.5);
+      this.glow.setPosition(pp.x, pp.y + bob).setDepth(d + 0.6);
     }
     if (this.bubble) {
       this.bubbleT -= dt;
@@ -150,15 +162,16 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     }
     this.onFreed();
     this.variant = 'color';
+    this.setTexture(`${this.person.tex}_color`, 'cheer');
     this.setAngle(0);
     this.setVelocity(0, 0);
-    this.setScale(1.3);
+    this.setScale(1.25);
     s.tweens.add({ targets: this, scale: 1, duration: 420, ease: 'Back.Out' });
-    s.fx.heart.explode(5, this.x, this.y - 18);
+    s.fx.heart.explode(5, this.x, this.y - 26);
     s.cameras.main.shake(140, 0.004);
     Sfx.play('shatter');
     s.time.delayedCall(180, () => Sfx.play('freed'));
-    this.bubbleLift = 22;
+    this.bubbleLift = 38;
     this.say(pick(this.lines.freed), 3.4, 'freed');
     this.talkT = rand(5, 8);
     this.mode = 'celebrate';
@@ -169,14 +182,42 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
   // Subclasses clean up their extras (chart, cone, aura) here.
   onFreed() {}
 
+  // ---------- talking ----------
+  startTalking() {
+    this.talking = true;
+    this.setVelocity(0, 0);
+    this.setFlipX(this.scene.player.x < this.x);
+    if (this.bubble) this.bubble.setVisible(false);
+    if (this.mode === 'sniff') this.scene.releaseFlower(this);
+    if (this.partner) this.partner.releaseChat?.();
+    this.partner = null;
+  }
+
+  stopTalking() {
+    this.talking = false;
+    this.talked = true;
+    this.mode = 'idle';
+    this.modeT = rand(1.5, 3);
+  }
+
   // ---------- freed behavior ----------
   updateFreed(dt) {
+    if (this.talking) {
+      this.setVelocity(0, 0);
+      return;
+    }
     this.modeT -= dt;
     switch (this.mode) {
       case 'celebrate':
+        this.pose = 'cheer';
+        this.setVelocity(0, 0);
+        if (this.modeT <= 0) this.pickMode();
+        break;
       case 'idle':
       case 'await':
         this.setVelocity(0, 0);
+        // wave at the hero when they come close
+        if (this.playerDist() < TUNING.talk.range * 2 && Math.sin(this.scene.time.now / 160) > 0.3) this.pose = 'wave';
         if (this.modeT <= 0) {
           if (this.mode === 'await' && this.partner) this.partner.releaseChat();
           this.pickMode();
@@ -184,8 +225,8 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
         break;
       case 'sniff':
         this.setVelocity(0, 0);
-        if (Math.random() < dt * 2.5) this.scene.fx.pollen.explode(2, this.x + (this.flipX ? -4 : 4), this.y - 6);
-        if (Math.random() < dt * 0.8) this.scene.fx.heart.explode(1, this.x, this.y - 20);
+        if (Math.random() < dt * 2.5) this.scene.fx.pollen.explode(2, this.x + (this.flipX ? -5 : 5), this.y - 8);
+        if (Math.random() < dt * 0.8) this.scene.fx.heart.explode(1, this.x, this.y - 30);
         if (this.modeT <= 0) {
           this.scene.releaseFlower(this);
           this.pickMode();
@@ -194,7 +235,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
       case 'chat':
         this.setVelocity(0, 0);
         if (this.partner) this.setFlipX(this.partner.x < this.x);
-        if (Math.random() < dt * 0.6) this.scene.fx.heart.explode(1, this.x, this.y - 20);
+        if (Math.random() < dt * 0.6) this.scene.fx.heart.explode(1, this.x, this.y - 30);
         if (this.modeT <= 0) this.endChat();
         break;
       case 'walk':
@@ -209,7 +250,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     let tx = this.target.x;
     let ty = this.target.y;
     if (this.purpose === 'chat' && this.partner) {
-      tx = this.partner.x + (this.x < this.partner.x ? -14 : 14);
+      tx = this.partner.x + (this.x < this.partner.x ? -18 : 18);
       ty = this.partner.y;
     }
     const dx = tx - this.x;
@@ -239,7 +280,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
       this.modeT = rand(2.5, 4);
       this.setFlipX(this.target.x < this.x);
       Sfx.play('pop');
-    } else if (this.purpose === 'chat' && this.partner && this.partner.mode === 'await') {
+    } else if (this.purpose === 'chat' && this.partner && this.partner.mode === 'await' && !this.partner.talking) {
       const pair = pick(LINES.chat);
       this.startChat(this.partner, pair[0]);
       this.partner.startChat(this, pair[1], 1.1);
@@ -263,7 +304,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.partner = partner;
     this.setVelocity(0, 0);
     this.scene.time.delayedCall(delay * 1000, () => {
-      if (this.mode === 'chat') this.say(line, 2.4, 'freed');
+      if (this.mode === 'chat' && !this.talking) this.say(line, 2.4, 'freed');
     });
   }
 
@@ -274,7 +315,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
   }
 
   releaseChat() {
-    if (this.mode === 'await') {
+    if (this.mode === 'await' || this.mode === 'chat') {
       this.partner = null;
       this.mode = 'idle';
       this.modeT = rand(0.3, 1);

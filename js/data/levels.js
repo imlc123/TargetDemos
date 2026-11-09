@@ -8,12 +8,18 @@
 //   B billboard (solid)   = crosswalk
 //
 // NPC and player positions are tile coordinates [x, y].
+// `who` names a character from js/data/characters.js. NPCs without one are extras.
+// `theme` picks the building style: hustle, aesthetic, scroll, feed.
+// `props` are themed decorations (see js/art/props.js). Signs and billboards take
+// text: signs ['LOCKED', 'FREED'], billboards ['LOCKED 1', 'LOCKED 2', 'FREED 1', 'FREED 2'].
 
 export const LEVELS = [
   {
     id: 'hustle',
     name: 'The Hustle District',
     feature: 'bro',
+    theme: 'hustle',
+    ambient: 'flyers',
     intro: {
       title: 'LEVEL 1: THE HUSTLE DISTRICT',
       subtitle: 'NEW: THE GRINDSET BRO',
@@ -24,9 +30,23 @@ export const LEVELS = [
     },
     player: [13, 11],
     npcs: [
-      { type: 'bro', at: [5, 7] },
-      { type: 'bro', at: [34, 6] },
-      { type: 'bro', at: [20, 17] },
+      { type: 'bro', at: [5, 7], who: 'chad' },
+      { type: 'bro', at: [34, 6], who: 'marcus' },
+      { type: 'bro', at: [20, 17], who: 'tyler' },
+    ],
+    props: [
+      { type: 'ticker', at: [2, 4] },
+      { type: 'sign', at: [16, 4], text: ['4AM CLUB', 'SLEEP IN CLUB'], color: '#3dff8a' },
+      { type: 'gymwin', at: [31, 4] },
+      { type: 'bigboard', at: [17, 1], text: ['RISE &', 'GRIND', 'REST &', 'RECOVER'] },
+      { type: 'atm', at: [8, 5] },
+      { type: 'bull', at: [19, 12] },
+      { type: 'plunge', at: [2, 15] },
+      { type: 'sign', at: [3, 14], text: ['SHRED SZN', 'SMOOTHIES & NAPS'], color: '#ff8a3d' },
+      { type: 'ticker', at: [31, 14] },
+      { type: 'sign', at: [16, 21], text: ['CAPITAL', 'COMMUNITY'], color: '#ffd23f' },
+      { type: 'atm', at: [31, 18] },
+      { type: 'sign', at: [30, 21], text: ['NO DAYS OFF', 'DAY OFF'], color: '#ff3fb4' },
     ],
     map: [
       'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',
@@ -59,6 +79,8 @@ export const LEVELS = [
     id: 'aesthetic',
     name: 'Aesthetic Avenue',
     feature: 'influencer',
+    theme: 'aesthetic',
+    ambient: 'sparkles',
     intro: {
       title: 'LEVEL 2: AESTHETIC AVENUE',
       subtitle: 'NEW: THE AESTHETIC INFLUENCER',
@@ -69,10 +91,26 @@ export const LEVELS = [
     },
     player: [2, 8],
     npcs: [
-      { type: 'influencer', at: [5, 11] },
-      { type: 'influencer', at: [34, 11] },
-      { type: 'influencer', at: [20, 5] },
+      { type: 'influencer', at: [5, 11], who: 'brooke' },
+      { type: 'influencer', at: [34, 11], who: 'jade' },
+      { type: 'influencer', at: [20, 5], who: 'sage' },
       { type: 'bro', at: [20, 16] },
+    ],
+    props: [
+      { type: 'sign', at: [3, 3], text: ['LATTE ART', 'OPEN MIC'], color: '#ff7eb6' },
+      { type: 'sign', at: [30, 3], text: ['GLOW UP SPA', 'NAP ROOM'], color: '#7ee0ff' },
+      { type: 'bigboard', at: [17, 1], text: ['BE YOUR', 'BRAND', 'BE', 'YOURSELF'] },
+      { type: 'wings', at: [9, 4] },
+      { type: 'wings', at: [26, 4] },
+      { type: 'ringlight', at: [8, 12] },
+      { type: 'ringlight', at: [31, 12] },
+      { type: 'plant', at: [11, 10] },
+      { type: 'plant', at: [28, 10] },
+      { type: 'decal', at: [13, 6] },
+      { type: 'decal', at: [24, 6] },
+      { type: 'decal', at: [16, 17] },
+      { type: 'decal', at: [29, 19] },
+      { type: 'sign', at: [18, 20], text: ['SELFIE SPOT', 'SIT SPOT'], color: '#ff3fb4' },
     ],
     map: [
       'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',
@@ -105,6 +143,8 @@ export const LEVELS = [
     id: 'scroll',
     name: 'The Scroll',
     feature: 'doom',
+    theme: 'scroll',
+    ambient: 'rain',
     intro: {
       title: 'LEVEL 3: THE SCROLL',
       subtitle: 'NEW: THE DOOM-SCROLLER',
@@ -115,11 +155,27 @@ export const LEVELS = [
     },
     player: [3, 18],
     npcs: [
-      { type: 'doom', at: [10, 10] },
-      { type: 'doom', at: [28, 10] },
-      { type: 'doom', at: [19, 14] },
+      { type: 'doom', at: [10, 10], who: 'doug' },
+      { type: 'doom', at: [28, 10], who: 'priya' },
+      { type: 'doom', at: [19, 14], who: 'ray' },
       { type: 'bro', at: [8, 5] },
       { type: 'influencer', at: [30, 17] },
+    ],
+    props: [
+      { type: 'newsscreen', at: [18, 7] },
+      { type: 'newsbox', at: [3, 3] },
+      { type: 'newsbox', at: [36, 16] },
+      { type: 'lamp', at: [7, 13] },
+      { type: 'lamp', at: [32, 13] },
+      { type: 'lamp', at: [12, 19] },
+      { type: 'lamp', at: [27, 19] },
+      { type: 'trash', at: [2, 16] },
+      { type: 'trash', at: [21, 19] },
+      { type: 'badges', at: [12, 9] },
+      { type: 'badges', at: [25, 12] },
+      { type: 'sign', at: [2, 2], text: ['DOOM DAILY', 'GOOD NEWS'], color: '#ff3b4e' },
+      { type: 'sign', at: [29, 2], text: ['NEWS 24/7', 'NEWS 9-5'], color: '#3fe8ff' },
+      { type: 'bigboard', at: [18, 21], text: ['STAY', 'ANXIOUS', 'STAY', 'CURIOUS'] },
     ],
     map: [
       'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',
@@ -153,6 +209,8 @@ export const LEVELS = [
     name: 'The Feed',
     feature: null,
     finale: true,
+    theme: 'feed',
+    ambient: 'badges',
     intro: {
       title: 'FINALE: THE FEED',
       subtitle: 'EVERYONE IS HERE',
@@ -163,16 +221,31 @@ export const LEVELS = [
     },
     player: [3, 17],
     npcs: [
-      { type: 'bro', at: [8, 4] },
+      { type: 'bro', at: [8, 4], who: 'gordon' },
       { type: 'bro', at: [30, 5] },
       { type: 'bro', at: [20, 18] },
-      { type: 'influencer', at: [5, 11] },
+      { type: 'influencer', at: [5, 11], who: 'luna' },
       { type: 'influencer', at: [34, 11] },
       { type: 'influencer', at: [12, 16] },
-      { type: 'doom', at: [14, 8] },
+      { type: 'doom', at: [14, 8], who: 'nell' },
       { type: 'doom', at: [25, 8] },
       { type: 'doom', at: [14, 14] },
       { type: 'doom', at: [25, 14] },
+    ],
+    props: [
+      { type: 'eye', at: [16, 10] },
+      { type: 'speaker', at: [12, 9] },
+      { type: 'speaker', at: [27, 9] },
+      { type: 'speaker', at: [12, 13] },
+      { type: 'speaker', at: [27, 13] },
+      { type: 'ticker', at: [4, 2] },
+      { type: 'ticker', at: [32, 2] },
+      { type: 'bigboard', at: [17, 0], text: ['THE FEED', 'LOVES YOU', 'LOG OFF', 'LOOK UP'] },
+      { type: 'wings', at: [30, 7] },
+      { type: 'bull', at: [30, 15] },
+      { type: 'newsscreen', at: [6, 15] },
+      { type: 'sign', at: [6, 20], text: ['SPONSORED', 'UNSPONSORED'], color: '#ff3fb4' },
+      { type: 'sign', at: [26, 20], text: ['TRENDING', 'RESTING'], color: '#3fe8ff' },
     ],
     map: [
       'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',

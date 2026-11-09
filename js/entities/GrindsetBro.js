@@ -8,21 +8,17 @@ const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
 // The Grindset Bro: only vulnerable during a market dip (chart turns red).
 export class GrindsetBro extends NPC {
-  constructor(scene, x, y, look) {
-    super(scene, x, y, 'bro', look);
+  constructor(scene, x, y, person) {
+    super(scene, x, y, 'bro', person);
     const C = TUNING.bro;
     this.phase = 'up';
     this.phaseT = rand(C.upTime[0], C.upTime[1]) + rand(0, 1.5);
     this.dashT = 0;
     this.shoveCd = 0;
     this.chart = scene.add.image(x, y, 'chart_up');
-    this.bubbleLift = 30;
+    this.bubbleLift = 46;
     this.pickDir();
     this.setPhoneColor(0x3dff8a);
-  }
-
-  phoneOffset() {
-    return { x: this.flipX ? -6 : 6, y: -14 };
   }
 
   isVulnerableTo() {
@@ -48,7 +44,8 @@ export class GrindsetBro extends NPC {
       if (this.phaseT <= 0) this.nextPhase();
       if (this.phase === 'dip') {
         this.setVelocity(0, 0);
-        this.setAngle(Math.sin(this.scene.time.now / 40) * 5); // panic wobble
+        this.pose = 'cheer'; // hands up: panic
+        this.setAngle(Math.sin(this.scene.time.now / 40) * 4); // panic wobble
       } else {
         this.setAngle(0);
         const sp = C.speed * (this.phase === 'warn' ? 0.5 : 1);
@@ -63,7 +60,7 @@ export class GrindsetBro extends NPC {
     if (this.phase === 'warn') up = Math.floor(this.phaseT * 10) % 2 === 0;
     this.chart.setTexture(up ? 'chart_up' : 'chart_down');
     this.setPhoneColor(up ? 0x3dff8a : 0xff3b5c);
-    this.chart.setPosition(this.x, this.y - 25).setDepth(100 + this.y + 1);
+    this.chart.setPosition(this.x, this.y - 39).setDepth(100 + this.y + 1);
     this.chart.setScale(this.phase === 'dip' ? 1.25 : 1);
 
     // shove the kid out of the way

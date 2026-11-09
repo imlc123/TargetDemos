@@ -6,6 +6,7 @@ export const FONT = '"Press Start 2P", "Courier New", monospace';
 
 const params = new URLSearchParams(window.location.search);
 export const DEBUG = params.has('debug');
+export const GALLERY = DEBUG && params.has('gallery');
 export const START_LEVEL = params.has('level') ? Math.max(0, parseInt(params.get('level'), 10) - 1 || 0) : null;
 
 export const TUNING = {
@@ -14,12 +15,13 @@ export const TUNING = {
   },
   pebble: {
     speed: 240,
-    range: 112, // px, about 7 tiles
+    range: 124, // px, about 8 tiles
+    hitRadius: 12, // how close a pebble must pass to hit someone
     cooldown: 0.33, // seconds between shots
     aimAssistAngle: 40, // degrees either side of facing
   },
   parry: {
-    radius: 34, // how close a headline must be to deflect it
+    radius: 36, // how close a headline must be to deflect it
     cooldown: 0.2,
   },
   meter: {
@@ -36,13 +38,13 @@ export const TUNING = {
     dashSpeed: 210,
     dashTime: 0.45,
     missPenalty: 10,
-    shoveRange: 13,
+    shoveRange: 16,
     shovePenalty: 5,
     shoveCooldown: 1.6,
   },
   influencer: {
     speed: 22,
-    coneRange: 86,
+    coneRange: 96,
     coneHalfAngle: 27, // degrees
     filmRate: 9, // meter per second while on camera
     contentifyTime: 1.3, // seconds on camera before you get stunned
@@ -52,7 +54,7 @@ export const TUNING = {
     backHitDot: 0.15, // how "behind" a pebble must come from (0 = side counts)
   },
   doom: {
-    auraRadius: 42,
+    auraRadius: 46,
     auraRate: 13, // meter per second inside the aura
     fireEvery: [2.8, 3.8],
     fireRange: 165,
@@ -63,5 +65,9 @@ export const TUNING = {
   },
   freed: {
     speed: 30,
+  },
+  talk: {
+    range: 28, // how close you must be to talk to someone
+    calm: 25, // the meter drops this much after your first chat with each person
   },
 };

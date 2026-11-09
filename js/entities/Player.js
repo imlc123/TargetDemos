@@ -1,15 +1,22 @@
 import { TUNING } from '../config.js';
+import { buildHero, heroKey } from '../art/sprites.js';
+import { Hero } from '../systems/Hero.js';
 
 const { Vector2 } = Phaser.Math;
 
-// The phone-less kid with a slingshot.
+// The hero: phone-less, slingshot in hand, looks however the player chose.
 export class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
-    super(scene, x, y, 'kid_0');
+    const profile = Hero.get();
+    buildHero(scene, profile);
+    const key = heroKey(profile);
+    super(scene, x, y, `${key}_color`, 'idle0');
+    this.texKey = key;
+    this.variant = 'color';
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 1);
-    this.body.setSize(8, 5).setOffset(4, 11);
+    this.body.setSize(10, 6).setOffset(7, 26);
 
     this.facing = new Vector2(1, 0);
     this.shootCd = 0;
@@ -17,8 +24,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.stun = 0;
     this.knock = new Vector2();
     this.animT = 0;
-    this.frameIdx = 0;
-    this.skin = 'kid';
+    this.walkIdx = 0;
+    this.idleIdx = 0;
+    this.swingT = 0;
     this.shadow = scene.add.image(x, y, 'shadow').setDepth(4);
 
     this.keys = scene.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,J');
@@ -29,7 +37,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.x;
   }
   get cy() {
-    return this.y - 7;
+    return this.y - 13;
+  }
+
+  // The feed got you: gray, phone in hand.
+  onboard() {
+    this.variant = 'gray';
+    this.setTexture(`${this.texKey}_gray`, 'idle0');
+  }
+
+  swing() {
+    this.swingT = 0.25;
   }
 
   consumeAction() {
@@ -55,6 +73,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   update(dt) {
     this.shootCd = Math.max(0, this.shootCd - dt);
     this.parryCd = Math.max(0, this.parryCd - dt);
+    this.swingT = Math.max(0, this.swingT - dt);
 
     let mx = 0;
     let my = 0;
@@ -79,7 +98,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.stun -= dt;
       this.setVelocity(this.knock.x, this.knock.y);
       this.knock.scale(Math.pow(0.02, dt));
-      this.setTint(Math.floor(this.stun * 12) % 2 ? 0xffffff : 0xff9fd0);
+      if (this.variant === 'color') this.setTint(Math.floor(this.stun * 12) % 2 ? 0xffffff : 0xff9fd0);
     } else {
       this.clearTint();
       const speed = TUNING.player.speed;
@@ -90,20 +109,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.facing.x < -0.1) this.setFlipX(true);
     else if (this.facing.x > 0.1) this.setFlipX(false);
 
-    // Walk animation
+    // animation
     const moving = this.body.velocity.lengthSq() > 30;
-    if (moving) {
-      this.animT += dt;
-      if (this.animT > 0.14) {
-        this.animT = 0;
-        this.frameIdx ^= 1;
-      }
+    this.animT += dt;
+    let frame;
+    if (this.swingT > 0) frame = 'wave';
+    else if (moving) {
+      if (this.animT > 0.1) { this.animT = 0; this.walkIdx = (this.walkIdx + 1) % 4; }
+      frame = `walk${this.walkIdx}`;
     } else {
-      this.frameIdx = 0;
+      if (this.animT > 0.5) { this.animT = 0; this.idleIdx ^= 1; }
+      frame = `idle${this.idleIdx}`;
     }
-    this.setTexture(`${this.skin}_${this.frameIdx}`);
+    if (this.frame.name !== frame) this.setFrame(frame);
 
-    // Flicker during grace period
+    // flicker during grace period
     const meter = this.scene.meter;
     this.setAlpha(meter && meter.invuln > 0 && Math.floor(meter.invuln * 14) % 2 ? 0.45 : 1);
 

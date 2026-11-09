@@ -65,7 +65,50 @@ const SOUNDS = {
   bloom: () => arp([392, 523, 659, 784, 1047, 1319], 0.09, { dur: 0.2, type: 'triangle', vol: 0.14 }),
   click: () => tone(440, { dur: 0.04, vol: 0.07 }),
   pop: () => tone(900, { to: 1300, dur: 0.05, type: 'triangle', vol: 0.06 }),
+  blip: (p = 1) => tone(520 * p + Math.random() * 40, { dur: 0.035, type: 'square', vol: 0.035 }),
+  ping: () => { tone(1320, { dur: 0.08, type: 'sine', vol: 0.08 }); tone(1760, { dur: 0.12, type: 'sine', vol: 0.06, delay: 0.07 }); },
+  crash: () => {
+    noise({ dur: 0.7, vol: 0.45, hp: 2500 });
+    noise({ dur: 0.25, vol: 0.35, hp: 300 });
+    for (let i = 0; i < 6; i++) tone(2000 + Math.random() * 2500, { dur: 0.08, type: 'triangle', vol: 0.06, delay: 0.05 + i * 0.07 });
+  },
+  swoosh: () => noise({ dur: 0.3, vol: 0.12, hp: 1200 }),
+  thud2: () => { tone(120, { to: 60, dur: 0.2, type: 'sine', vol: 0.3 }); noise({ dur: 0.08, vol: 0.15, hp: 200 }); },
+  chord: () => [392, 494, 587, 784].forEach((n, i) => tone(n, { dur: 1.6, type: 'triangle', vol: 0.07, delay: i * 0.05 })),
 };
+
+let rain = null;
+function startRain() {
+  if (rain || !ctx) return;
+  if (!noiseBuf) noise({ dur: 0.01, vol: 0.0001 });
+  const src = ctx.createBufferSource();
+  src.buffer = noiseBuf;
+  src.loop = true;
+  const f = ctx.createBiquadFilter();
+  f.type = 'bandpass';
+  f.frequency.value = 1400;
+  f.Q.value = 0.6;
+  const g = ctx.createGain();
+  g.gain.value = 0.0001;
+  g.gain.exponentialRampToValueAtTime(0.06, ctx.currentTime + 1.5);
+  src.connect(f);
+  f.connect(g);
+  g.connect(master);
+  src.start();
+  rain = { src, g };
+}
+function stopRain(fade = 1) {
+  if (!rain) return;
+  const r = rain;
+  rain = null;
+  try {
+    r.g.gain.setValueAtTime(r.g.gain.value, ctx.currentTime);
+    r.g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + fade);
+    r.src.stop(ctx.currentTime + fade + 0.05);
+  } catch (e) {
+    /* ignore */
+  }
+}
 
 export const Sfx = {
   unlock() {
@@ -84,16 +127,22 @@ export const Sfx = {
     }
     if (ctx.state === 'suspended') ctx.resume();
   },
-  play(name) {
+  play(name, arg) {
     if (muted || !ctx || ctx.state !== 'running') return;
     try {
-      SOUNDS[name]?.();
+      SOUNDS[name]?.(arg);
     } catch (e) {
       /* never let audio break the game */
     }
   },
   setMuted(m) {
     muted = m;
+    if (m) stopRain(0.1);
+  },
+  rain(on) {
+    if (!ctx || ctx.state !== 'running') return;
+    if (on && !muted) startRain();
+    else stopRain();
   },
   get muted() {
     return muted;

@@ -41,7 +41,7 @@ export class TouchControls {
   }
 
   blocked() {
-    return this.scene.scene.isActive('Card');
+    return this.scene.scene.isActive('Card') || this.scene.scene.isActive('Dialogue');
   }
 
   onDown(p, over) {
@@ -102,8 +102,9 @@ export class TouchControls {
   update(game) {
     if (!this.enabled) return;
     const ready = !!game.parryReady;
-    this.btnLabel.setText(ready ? 'DEFLECT!' : 'SHOOT');
-    this.btn.setFillStyle(ready ? 0xffe066 : 0xff5fa2, ready ? 0.45 : 0.22);
+    const talk = !ready && !!game.talkTarget;
+    this.btnLabel.setText(ready ? 'DEFLECT!' : talk ? 'TALK' : 'SHOOT');
+    this.btn.setFillStyle(ready ? 0xffe066 : talk ? 0x7bd36a : 0xff5fa2, ready || talk ? 0.45 : 0.22);
     if (this.blocked() && this.joyId !== null) this.onUp({ id: this.joyId });
   }
 
