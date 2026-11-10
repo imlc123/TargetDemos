@@ -265,7 +265,7 @@ export class IntroScene extends Phaser.Scene {
     this.finished = true;
     Sfx.rain(false);
     Save.setSeenIntro();
-    if (this.next === 'create') this.scene.start('Create', { next: 'game' });
+    if (this.next === 'create') this.scene.start('Create', { next: 'game', level: 0 });
     else this.scene.start('Menu');
   }
 }

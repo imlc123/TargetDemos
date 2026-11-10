@@ -17,6 +17,7 @@ export class MenuScene extends Phaser.Scene {
     const W = this.scale.width;
     const H = this.scale.height;
     this.cameras.main.setBackgroundColor('#0d0b16');
+    this.leaving = false; // the scene object is reused, so reset this every time the menu opens
     this.input.keyboard.enableGlobalCapture();
     this.drawCity(W, H);
 
@@ -53,9 +54,9 @@ export class MenuScene extends Phaser.Scene {
     const label = !hasHero ? 'PLAY' : save.cleared.some(Boolean) ? 'CONTINUE' : 'PLAY';
     this.mainButtons = [
       makeButton(this, W / 2, 200, label, () => this.play(next), { w: 280, h: 54, size: 18 }),
-      makeButton(this, W / 2 - 190, 266, 'LEVELS', () => this.showLevels(true), { w: 170, h: 44, size: 11, color: 0x3fe8ff, enabled: hasHero }),
+      makeButton(this, W / 2 - 190, 266, 'LEVELS', () => this.showLevels(true), { w: 170, h: 44, size: 11, color: 0x3fe8ff }),
       makeButton(this, W / 2, 266, 'WATCH INTRO', () => this.go('Intro', { next: 'menu' }), { w: 190, h: 44, size: 11, color: 0xffe066 }),
-      makeButton(this, W / 2 + 190, 266, 'EDIT HERO', () => this.go('Create', { next: 'menu' }), { w: 170, h: 44, size: 11, color: 0x7bd36a, enabled: hasHero }),
+      makeButton(this, W / 2 + 190, 266, hasHero ? 'EDIT HERO' : 'CREATE HERO', () => this.go('Create', { next: 'menu' }), { w: 170, h: 44, size: 11, color: 0x7bd36a }),
     ];
     if (hasHero) {
       this.add.text(W / 2, 470, profile.name.toUpperCase(), { fontFamily: FONT, fontSize: '11px', color: '#ffffff', stroke: '#000000', strokeThickness: 4 }).setOrigin(0.5);
@@ -82,7 +83,7 @@ export class MenuScene extends Phaser.Scene {
     kb.on('keydown-M', () => this.toggleMute());
     for (let i = 0; i < 4; i++) {
       kb.on(`keydown-${['ONE', 'TWO', 'THREE', 'FOUR'][i]}`, () => {
-        if (hasHero && (i < Save.load().unlocked || DEBUG)) this.startLevel(i);
+        if (i < Save.load().unlocked || DEBUG) this.startLevel(i);
       });
     }
   }
@@ -92,9 +93,9 @@ export class MenuScene extends Phaser.Scene {
     return 0;
   }
 
-  // First PLAY: intro, then hero creation, then level 1.
+  // First PLAY: intro (unless already seen), then hero creation, then the level.
   play(level) {
-    if (!Hero.exists()) this.go('Intro', { next: 'create' });
+    if (!Hero.exists() && !Save.load().seenIntro) this.go('Intro', { next: 'create' });
     else this.startLevel(level);
   }
 
@@ -191,7 +192,9 @@ export class MenuScene extends Phaser.Scene {
     this.muteBtn.label.setText(this.muteLabel());
   }
 
+  // Without a hero yet, make one first and then start the level.
   startLevel(i) {
-    this.go('Game', { level: i });
+    if (!Hero.exists()) this.go('Create', { next: 'game', level: i });
+    else this.go('Game', { level: i });
   }
 }

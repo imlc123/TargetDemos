@@ -18,6 +18,8 @@ export class CreateScene extends Phaser.Scene {
 
   init(data) {
     this.next = data.next || 'game';
+    this.level = data.level || 0;
+    this.leaving = false;
   }
 
   create() {
@@ -138,7 +140,7 @@ export class CreateScene extends Phaser.Scene {
     Sfx.unlock();
     Sfx.play('freed');
     Hero.set({ ...this.profile, name: cleanName(this.nameInput.node.value) });
-    if (this.next === 'game') this.scene.start('Game', { level: 0 });
+    if (this.next === 'game') this.scene.start('Game', { level: this.level });
     else this.scene.start('Menu');
   }
 }
