@@ -8,8 +8,8 @@ const rand = Phaser.Math.FloatBetween;
 // The Doom-Scroller: a draining aura that blocks pebbles. Deflect their doom
 // headline back as good news to stun them, then break the phone.
 export class DoomScroller extends NPC {
-  constructor(scene, x, y, look) {
-    super(scene, x, y, 'doom', look);
+  constructor(scene, x, y, person) {
+    super(scene, x, y, 'doom', person);
     const C = TUNING.doom;
     this.auraScale = 1;
     this.stunT = 0;
@@ -19,15 +19,12 @@ export class DoomScroller extends NPC {
     this.aura = scene.add.image(x, y, 'aura').setDepth(3);
     this.stars = [scene.add.image(x, y, 'star').setVisible(false), scene.add.image(x, y, 'star').setVisible(false)];
     this.setPhoneColor(0x9a7dff);
-    this.bubbleLift = 20;
+    this.bubbleLift = 36;
+    this.sway = Math.random() * 6;
   }
 
   get cy() {
-    return this.y - 9;
-  }
-
-  phoneOffset() {
-    return { x: 0, y: -8 };
+    return this.y - 14;
   }
 
   get auraRadius() {
@@ -66,7 +63,7 @@ export class DoomScroller extends NPC {
       const t = s.time.now / 160;
       this.stars.forEach((st, i) => {
         const a = t + i * Math.PI;
-        st.setVisible(true).setPosition(this.x + Math.cos(a) * 7, this.y - 22 + Math.sin(a) * 2).setDepth(100 + this.y + 2);
+        st.setVisible(true).setPosition(this.x + Math.cos(a) * 9, this.y - 34 + Math.sin(a) * 2).setDepth(100 + this.y + 2);
       });
       this.glow.setAlpha(0.15);
       if (this.stunT <= 0) {
@@ -93,11 +90,11 @@ export class DoomScroller extends NPC {
     const pulse = 1 + Math.sin(s.time.now / 300) * 0.05;
     const inside = d < this.auraRadius;
     this.aura
-      .setPosition(this.x, this.y - 6)
+      .setPosition(this.x, this.y - 10)
       .setScale(((this.auraRadius * 2) / 96) * pulse)
       .setAlpha(this.auraScale < 0.05 ? 0 : inside ? 1 : 0.85);
     // gentle hunched sway
-    this.setAngle(Math.sin(s.time.now / 700 + this.look) * 2);
+    this.setAngle(Math.sin(s.time.now / 700 + this.sway) * 2);
   }
 
   onReflectHit() {
@@ -106,7 +103,7 @@ export class DoomScroller extends NPC {
     s.tweens.killTweensOf(this);
     s.tweens.add({ targets: this, auraScale: 0, duration: 300, ease: 'Sine.In' });
     s.fx.star.explode(10, this.x, this.y - 12);
-    s.popText(this.x, this.y - 28, 'STUNNED!', '#ffe066');
+    s.popText(this.x, this.y - 40, 'STUNNED!', '#ffe066');
     this.say(pick(this.lines.stunned), 2.2);
     Sfx.play('stun');
   }

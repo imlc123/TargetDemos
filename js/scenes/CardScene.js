@@ -1,6 +1,8 @@
 import { FONT } from '../config.js';
 import { Sfx } from '../systems/Sfx.js';
 import { makeButton } from '../ui/button.js';
+import { heroKey } from '../art/sprites.js';
+import { Hero } from '../systems/Hero.js';
 
 const ACCENTS = { intro: 0x3fe8ff, clear: 0x7bd36a, win: 0xffe066, fail: 0xff3fb4, pause: 0x8a5cff };
 
@@ -37,7 +39,7 @@ export class CardScene extends Phaser.Scene {
     if (icon) {
       icon.setPosition(0, y + 30);
       panel.add(icon);
-      y += 76;
+      y += 84;
     }
 
     panel.add(
@@ -72,17 +74,19 @@ export class CardScene extends Phaser.Scene {
   iconRow(icon) {
     if (!icon) return null;
     const c = this.add.container(0, 0);
-    const add = (key, x, scale = 3) => c.add(this.add.image(x, 30, key).setOrigin(0.5, 1).setScale(scale));
+    const add = (key, frame, x, scale = 2.5) => c.add(this.add.image(x, 34, key, frame).setOrigin(0.5, 1).setScale(scale));
+    const arrow = (color) => c.add(this.add.text(0, 6, '>', { fontFamily: FONT, fontSize: '18px', color }).setOrigin(0.5));
     if (icon === 'fail') {
-      add('kid_0', -60);
-      c.add(this.add.text(0, 0, '>', { fontFamily: FONT, fontSize: '18px', color: '#ff3fb4' }).setOrigin(0.5));
-      add('kid_gray_0', 60);
+      const k = heroKey(Hero.get());
+      add(`${k}_color`, 'idle0', -60);
+      arrow('#ff3fb4');
+      add(`${k}_gray`, 'idle0', 60);
     } else if (icon === 'all') {
-      ['bro', 'influencer', 'doom'].forEach((k, i) => add(`${k}_${i}_color_0`, -80 + i * 80));
+      ['gordon', 'luna', 'nell'].forEach((id, i) => add(`ch_${id}_color`, i === 1 ? 'wave' : 'cheer', -80 + i * 80));
     } else {
-      add(`${icon}_0_gray_0`, -60);
-      c.add(this.add.text(0, 0, '>', { fontFamily: FONT, fontSize: '18px', color: '#ffe066' }).setOrigin(0.5));
-      add(`${icon}_0_color_0`, 60);
+      add(`${icon}_gray`, 'idle0', -60);
+      arrow('#ffe066');
+      add(`${icon}_color`, 'cheer', 60);
     }
     return c;
   }

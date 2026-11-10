@@ -47,7 +47,7 @@ export class UIScene extends Phaser.Scene {
     // desktop hint
     if (!this.sys.game.device.input.touch) {
       const hint = this.add
-        .text(W / 2, H - 26, 'WASD / Arrows: move    Space: shoot / deflect    Esc: pause', { fontFamily: FONT, fontSize: '10px', color: '#ffffff' })
+        .text(W / 2, H - 26, 'WASD / Arrows: move    Space: shoot / deflect / talk    Esc: pause', { fontFamily: FONT, fontSize: '10px', color: '#ffffff' })
         .setOrigin(0.5)
         .setAlpha(0.7);
       this.time.delayedCall(9000, () => this.tweens.add({ targets: hint, alpha: 0, duration: 800 }));
@@ -71,7 +71,7 @@ export class UIScene extends Phaser.Scene {
     draw(g);
     bg.setInteractive({ useHandCursor: true });
     bg.on(onUp ? 'pointerup' : 'pointerdown', () => {
-      if (this.scene.isActive('Card')) return;
+      if (this.scene.isActive('Card') || this.scene.isActive('Dialogue')) return;
       Sfx.unlock();
       onClick();
     });

@@ -1,24 +1,21 @@
 import { TILE, TUNING, VIEW, FONT, DEBUG } from '../config.js';
 import { LEVELS, normalizeMap } from '../data/levels.js';
 import { LINES, pick } from '../data/lines.js';
-import { T, SOLID, LOOKS } from '../art/pixels.js';
+import { T, SOLID, tileIdFor, isSolidTile } from '../art/tiles.js';
+import { PHONE_AT } from '../art/sprites.js';
 import { Player } from '../entities/Player.js';
 import { Pebble } from '../entities/Pebble.js';
 import { Headline } from '../entities/Headline.js';
+import { Prop } from '../entities/Prop.js';
 import { GrindsetBro } from '../entities/GrindsetBro.js';
 import { Influencer } from '../entities/Influencer.js';
 import { DoomScroller } from '../entities/DoomScroller.js';
 import { AlgorithmMeter } from '../systems/AlgorithmMeter.js';
+import { personFor } from '../systems/People.js';
 import { Save } from '../systems/Save.js';
 import { Sfx } from '../systems/Sfx.js';
 
-const CHAR_TO_TILE = {
-  '.': T.ROAD, ',': T.SIDEWALK, '=': T.CROSSWALK, R: T.ROOF, W: T.WINDOW, g: T.GRASS, f: T.FLOWER,
-  T: T.TREE, b: T.BENCH, B: T.BILLBOARD, p: T.PLAZA, h: T.HEDGE,
-};
-const SOLID_SET = new Set(SOLID);
 const NPC_CLASSES = { bro: GrindsetBro, influencer: Influencer, doom: DoomScroller };
-const hash = (x, y) => (((x * 73856093) ^ (y * 19349663)) >>> 0) % 97;
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -37,34 +34,54 @@ export class GameScene extends Phaser.Scene {
     this.freeRoam = false;
     this.pebbles = [];
     this.headlines = [];
+    this.props = [];
     this.sfxThisFrame = new Set();
     this.claimedFlowers = new Map();
     this.meter = new AlgorithmMeter(TUNING.meter);
+    this.talkTarget = null;
+    this.inDialogue = false;
 
     this.buildMap();
     this.buildFx();
+
+    // themed props (they mark their own footprint as solid)
+    (this.level.props || []).forEach((def) => this.props.push(new Prop(this, def)));
 
     // player
     const [px, py] = this.level.player;
     this.player = new Player(this, px * TILE + 8, py * TILE + 14);
     this.physics.add.collider(this.player, this.grayLayer);
 
-    // NPCs
+    // people
     this.npcs = [];
     this.level.npcs.forEach((n, i) => {
+      const person = personFor(this, this.levelIndex, this.level, n, i);
       const Cls = NPC_CLASSES[n.type];
-      const look = (i * 2 + this.levelIndex) % LOOKS;
-      const npc = new Cls(this, n.at[0] * TILE + 8, n.at[1] * TILE + 14, look);
-      this.npcs.push(npc);
+      this.npcs.push(new Cls(this, n.at[0] * TILE + 8, n.at[1] * TILE + 14, person));
     });
     this.physics.add.collider(this.npcs, this.grayLayer);
     this.total = this.npcs.length;
     this.freedCount = 0;
 
+    // each prop changes when the nearest person is freed
+    for (const prop of this.props) {
+      if (prop.type === 'eye') continue;
+      let best = null;
+      let bd = Infinity;
+      for (const n of this.npcs) {
+        const d = Math.hypot(n.x - prop.cx, n.y - prop.cy);
+        if (d < bd) { bd = d; best = n; }
+      }
+      prop.link = best;
+    }
+
+    this.buildAmbient();
+
     // ground-level graphics
     this.coneGfx = this.add.graphics().setDepth(3.5);
     this.reticle = this.add.image(0, 0, 'reticle').setDepth(4100).setVisible(false);
     this.aimDot = this.add.image(0, 0, 'pebble').setDepth(4100).setAlpha(0.5);
+    this.talkTag = this.add.image(0, 0, 'talktag').setDepth(5050).setVisible(false);
 
     // camera
     const cam = this.cameras.main;
@@ -90,29 +107,36 @@ export class GameScene extends Phaser.Scene {
       const intro = this.level.intro;
       this.showCard({
         kind: 'intro', title: intro.title, subtitle: intro.subtitle, body: intro.body,
-        icon: this.level.feature, buttons: [{ label: "LET'S GO", action: 'resume' }],
+        icon: this.featuredTex(), buttons: [{ label: "LET'S GO", action: 'resume' }],
       });
     }
+  }
+
+  featuredTex() {
+    const n = this.npcs.find((x) => x.kind === this.level.feature) || this.npcs[0];
+    return n ? n.person.tex : null;
   }
 
   // ---------- map ----------
   buildMap() {
     const rows = normalizeMap(this.level.map);
+    const theme = this.level.theme || 'hustle';
     this.tileIds = [];
+    this.solid = [];
     this.flowers = [];
     this.billboards = [];
     rows.forEach((row, y) => {
       const ids = [];
+      const sol = [];
       for (let x = 0; x < row.length; x++) {
-        const ch = row[x];
-        let id = CHAR_TO_TILE[ch] ?? T.SIDEWALK;
-        if (id === T.ROOF && hash(x, y) % 6 === 0) id = T.ROOF_VENT;
-        if (id === T.WINDOW && hash(x, y) % 3 === 0) id = T.WINDOW_LIT;
+        const id = tileIdFor(rows, x, y, theme);
         if (id === T.FLOWER) this.flowers.push({ x: x * TILE + 8, y: y * TILE + 12, key: `${x},${y}` });
         if (id === T.BILLBOARD) this.billboards.push({ x, y });
         ids.push(id);
+        sol.push(isSolidTile(id));
       }
       this.tileIds.push(ids);
+      this.solid.push(sol);
     });
     this.mapTW = rows[0].length;
     this.mapTH = rows.length;
@@ -129,6 +153,14 @@ export class GameScene extends Phaser.Scene {
     this.grayLayer.setCollision(SOLID);
     this.night = this.add.rectangle(0, 0, this.mapW, this.mapH, 0x120a2a, 0.38).setOrigin(0).setDepth(2);
     this.colorNow = 0;
+  }
+
+  // Props call this to block the tiles they stand on.
+  markSolid(tx, ty) {
+    if (!this.solid[ty] || tx < 0 || tx >= this.mapTW) return;
+    this.solid[ty][tx] = true;
+    const tile = this.grayLayer.getTileAt(tx, ty);
+    if (tile) tile.setCollision(true, true, true, true, true);
   }
 
   buildFx() {
@@ -149,7 +181,42 @@ export class GameScene extends Phaser.Scene {
       star: this.add.particles(0, 0, 'star', {
         ...base, speed: { min: 30, max: 90 }, lifespan: 500,
       }).setDepth(4600),
+      sparkle: this.add.particles(0, 0, 'sparkle', {
+        ...base, speed: { min: 10, max: 40 }, lifespan: 600, tint: [0xffffff, 0xffe066, 0xff9fd0],
+      }).setDepth(4600),
     };
+  }
+
+  // Weather and drifting stuff that fades as the block is freed.
+  buildAmbient() {
+    const view = { w: VIEW.width / VIEW.zoom + 40, h: VIEW.height / VIEW.zoom + 40 };
+    const kind = this.level.ambient;
+    const configs = {
+      rain: {
+        texture: 'raindrop', freq: 12,
+        cfg: { x: { min: 0, max: view.w + 60 }, y: { min: -30, max: 0 }, speedY: { min: 260, max: 330 }, speedX: { min: -50, max: -35 }, lifespan: 1100, quantity: 2, alpha: { start: 0.8, end: 0.4 } },
+      },
+      flyers: {
+        texture: 'flyer', freq: 650,
+        cfg: { x: { min: -20, max: 0 }, y: { min: 0, max: view.h }, speedX: { min: 20, max: 45 }, speedY: { min: -6, max: 10 }, rotate: { min: -40, max: 40 }, lifespan: 12000 },
+      },
+      sparkles: {
+        texture: 'sparkle', freq: 260,
+        cfg: { x: { min: 0, max: view.w }, y: { min: 0, max: view.h }, scale: { start: 0, end: 1, ease: 'Sine.InOut', yoyo: true }, lifespan: 800, tint: [0xffffff, 0xff9fd0, 0x9fe8ff], alpha: 0.8 },
+      },
+      badges: {
+        texture: 'badge', freq: 700,
+        cfg: { x: { min: 0, max: view.w }, y: view.h, speedY: { min: -25, max: -12 }, lifespan: 9000, alpha: { start: 0.8, end: 0 } },
+      },
+    };
+    const c = configs[kind];
+    if (!c) return;
+    this.ambientBase = c.freq;
+    this.ambient = this.add.particles(0, 0, c.texture, { ...c.cfg, frequency: c.freq }).setDepth(4900);
+    if (kind === 'rain') {
+      Sfx.rain(true);
+      this.events.once('shutdown', () => Sfx.rain(false));
+    }
   }
 
   // ---------- helpers used by entities ----------
@@ -157,7 +224,7 @@ export class GameScene extends Phaser.Scene {
     const tx = Math.floor(wx / TILE);
     const ty = Math.floor(wy / TILE);
     if (tx < 0 || ty < 0 || tx >= this.mapTW || ty >= this.mapTH) return true;
-    return SOLID_SET.has(this.tileIds[ty][tx]);
+    return this.solid[ty][tx];
   }
 
   // Distance a ray travels before hitting something solid (checked at ground level).
@@ -165,7 +232,7 @@ export class GameScene extends Phaser.Scene {
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     for (let d = 4; d <= max; d += 4) {
-      if (this.isSolidAt(x + cos * d, y + 6 + sin * d)) return d;
+      if (this.isSolidAt(x + cos * d, y + 8 + sin * d)) return d;
     }
     return max;
   }
@@ -189,7 +256,7 @@ export class GameScene extends Phaser.Scene {
 
   claimFlower(npc, maxDist) {
     const free = this.flowers
-      .filter((f) => !this.claimedFlowers.has(f.key))
+      .filter((f) => !this.claimedFlowers.has(f.key) && !this.isSolidAt(f.x, f.y))
       .map((f) => ({ f, d: Math.hypot(f.x - npc.x, f.y - npc.y) }))
       .filter((o) => o.d < maxDist)
       .sort((a, b) => a.d - b.d)
@@ -208,7 +275,7 @@ export class GameScene extends Phaser.Scene {
 
   findChatPartner(npc) {
     const options = this.npcs.filter(
-      (o) => o !== npc && o.state === 'freed' && (o.mode === 'idle' || (o.mode === 'walk' && o.purpose === 'wander')) &&
+      (o) => o !== npc && o.state === 'freed' && !o.talking && (o.mode === 'idle' || (o.mode === 'walk' && o.purpose === 'wander')) &&
         Math.hypot(o.x - npc.x, o.y - npc.y) < 10 * TILE,
     );
     return options.length ? Phaser.Utils.Array.GetRandom(options) : null;
@@ -263,7 +330,7 @@ export class GameScene extends Phaser.Scene {
     return ok;
   }
 
-  // ---------- aiming & action ----------
+  // ---------- aiming, talking & action ----------
   findAimTarget() {
     const p = this.player;
     const f = p.facing;
@@ -289,20 +356,39 @@ export class GameScene extends Phaser.Scene {
     return best;
   }
 
+  findTalkTarget() {
+    const p = this.player;
+    let best = null;
+    let bd = TUNING.talk.range;
+    for (const n of this.npcs) {
+      if (n.state !== 'freed' || n.talking || n.mode === 'celebrate') continue;
+      const d = Math.hypot(n.x - p.x, n.y - p.y);
+      if (d < bd) { bd = d; best = n; }
+    }
+    return best;
+  }
+
   doAction() {
     const p = this.player;
-    // Deflect any doom headline in range.
+    // 1. deflect any doom headline in range
     if (p.parryCd <= 0) {
       const near = this.headlines.filter((h) => !h.reflected && !h.dead && Math.hypot(h.x - p.cx, h.y - p.cy) < TUNING.parry.radius);
       if (near.length) {
         near.forEach((h) => h.reflect());
         p.parryCd = TUNING.parry.cooldown;
+        p.swing();
         Sfx.play('parry');
-        this.popText(p.x, p.y - 22, 'DEFLECT!', '#ffe066');
+        this.popText(p.x, p.y - 34, 'DEFLECT!', '#ffe066');
         this.cameras.main.shake(80, 0.002);
         return;
       }
     }
+    // 2. talk to a freed person
+    if (this.talkTarget) {
+      this.openDialogue(this.talkTarget);
+      return;
+    }
+    // 3. shoot
     if (p.shootCd > 0) return;
     let dx = p.facing.x;
     let dy = p.facing.y;
@@ -312,14 +398,48 @@ export class GameScene extends Phaser.Scene {
       dx = (t.cx - p.cx) / d;
       dy = (t.cy - p.cy) / d;
     }
-    this.pebbles.push(new Pebble(this, p.cx + dx * 5, p.cy + dy * 5, dx, dy));
+    this.pebbles.push(new Pebble(this, p.cx + dx * 6, p.cy + dy * 6, dx, dy));
     p.shootCd = TUNING.pebble.cooldown;
+    p.swing();
     Sfx.play('shoot');
   }
 
+  openDialogue(npc) {
+    this.inDialogue = true;
+    npc.startTalking();
+    this.player.setVelocity(0, 0);
+    this.talkTag.setVisible(false);
+    Sfx.play('pop');
+    this.scene.launch('Dialogue', { npc, person: npc.person, first: !npc.talked });
+    this.scene.bringToTop('Dialogue');
+    this.scene.pause();
+  }
+
+  // Called by the Dialogue scene when the conversation ends.
+  onDialogueEnd(npc, first) {
+    this.inDialogue = false;
+    npc.stopTalking();
+    this.scene.resume();
+    if (first) {
+      const before = this.meter.value;
+      this.meter.value = Math.max(0, this.meter.value - TUNING.talk.calm);
+      this.popText(this.player.x, this.player.y - 34, before > 0 ? 'CALM +' : 'NICE CHAT', '#9fffc0');
+      this.fx.heart.explode(3, npc.x, npc.y - 30);
+    }
+  }
+
   // ---------- events ----------
-  onNpcFreed() {
+  onNpcFreed(npc) {
     this.freedCount++;
+    for (const prop of this.props) if (prop.link === npc) prop.transform();
+    if (this.ambient) {
+      const left = 1 - this.freedCount / this.total;
+      if (left <= 0) {
+        this.ambient.stop();
+        Sfx.rain(false);
+      }
+      else this.ambient.frequency = this.ambientBase / left;
+    }
     if (this.freedCount >= this.total && !this.ending) {
       this.cleared = true;
       this.meter.frozen = true;
@@ -332,6 +452,7 @@ export class GameScene extends Phaser.Scene {
     this.ending = true;
     Save.clearLevel(this.levelIndex);
     Sfx.play('clear');
+    this.props.forEach((p) => p.type !== 'eye' && p.transform(true));
     const last = this.levelIndex >= LEVELS.length - 1;
     if (this.level.finale) {
       this.bloomBillboards(() => {
@@ -349,9 +470,9 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(400, () =>
       this.showCard({
         kind: 'clear', title: 'BLOCK FREED!',
-        body: `${this.total} people logged off. ${this.level.name} can breathe again.\n\nNext up: ${next ? next.name : ''}.`,
-        icon: this.level.feature,
-        buttons: last ? [{ label: 'MENU', action: 'menu' }] : [{ label: 'NEXT BLOCK', action: 'next' }, { label: 'MENU', action: 'menu' }],
+        body: `${this.total} people logged off. ${this.level.name} can breathe again.\n\nTip: freed people love to talk. Walk up and press ACTION.\n\nNext up: ${next ? next.name : ''}.`,
+        icon: this.featuredTex(),
+        buttons: last ? [{ label: 'MENU', action: 'menu' }] : [{ label: 'NEXT BLOCK', action: 'next' }, { label: 'STAY A WHILE', action: 'stay' }, { label: 'MENU', action: 'menu' }],
       }),
     );
   }
@@ -359,9 +480,15 @@ export class GameScene extends Phaser.Scene {
   bloomBillboards(done) {
     Sfx.play('bloom');
     this.cameras.main.flash(300, 255, 240, 200);
+    const eye = this.props.find((p) => p.type === 'eye');
+    if (eye) {
+      eye.transform(true);
+      this.tweens.add({ targets: eye.image, alpha: 0, delay: 900, duration: 700 });
+    }
     this.billboards.forEach(({ x, y }, i) => {
-      this.time.delayedCall(i * 70, () => {
+      this.time.delayedCall(1200 + i * 70, () => {
         this.tileIds[y][x] = T.FLOWER;
+        this.solid[y][x] = false;
         this.grayMap.putTileAt(T.FLOWER, x, y);
         this.colorMap.putTileAt(T.FLOWER, x, y);
         this.grayLayer.setCollision(SOLID);
@@ -370,18 +497,21 @@ export class GameScene extends Phaser.Scene {
         this.fx.pollen.explode(4, x * TILE + 8, y * TILE + 8);
       });
     });
-    this.time.delayedCall(this.billboards.length * 70 + 1800, done);
+    this.time.delayedCall(1200 + this.billboards.length * 70 + 1800, done);
   }
 
   fail() {
     if (this.ending) return;
     this.ending = true;
     const p = this.player;
-    p.skin = 'kid_gray';
+    p.onboard();
     p.setVelocity(0, 0);
     p.stun = 99;
-    const phone = this.add.rectangle(p.x + 5, p.y - 9, 3, 5, 0xff3fb4).setStrokeStyle(1, 0x15151c).setDepth(p.depth + 1);
-    this.add.image(phone.x, phone.y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(0xff3fb4).setDepth(p.depth + 1).setScale(0.6);
+    const [hx, hy] = PHONE_AT.phone;
+    const fx = p.x - 12 + (p.flipX ? 23 - hx : hx) + 0.5;
+    const fy = p.y - 32 + hy + 0.5;
+    this.add.rectangle(fx, fy, 3, 5, 0xff3fb4).setStrokeStyle(1, 0x15151c).setDepth(p.depth + 1);
+    this.add.image(fx, fy, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(0xff3fb4).setDepth(p.depth + 1).setScale(0.6);
     this.headlines.forEach((h) => h.die());
     Sfx.play('onboard');
     this.cameras.main.flash(250, 255, 63, 180);
@@ -414,9 +544,12 @@ export class GameScene extends Phaser.Scene {
 
   openPause() {
     if (this.ending && !this.freeRoam) return;
+    const next = this.cleared && this.levelIndex < LEVELS.length - 1;
     this.showCard({
       kind: 'pause', title: 'PAUSED', body: 'Take a breath. The feed can wait.',
-      buttons: [{ label: 'RESUME', action: 'resume' }, { label: 'RESTART', action: 'restart' }, { label: 'MENU', action: 'menu' }],
+      buttons: next
+        ? [{ label: 'RESUME', action: 'resume' }, { label: 'NEXT BLOCK', action: 'next' }, { label: 'MENU', action: 'menu' }]
+        : [{ label: 'RESUME', action: 'resume' }, { label: 'RESTART', action: 'restart' }, { label: 'MENU', action: 'menu' }],
     });
   }
 
@@ -437,12 +570,17 @@ export class GameScene extends Phaser.Scene {
     const p = this.player;
     p.update(dt);
 
-    this.aimTarget = this.ending && !this.freeRoam ? null : this.findAimTarget();
-    if (p.consumeAction() && (!this.ending || this.freeRoam)) this.doAction();
+    const canAct = !this.ending || this.freeRoam;
+    this.aimTarget = canAct ? this.findAimTarget() : null;
+    this.talkTarget = canAct ? this.findTalkTarget() : null;
+    if (p.consumeAction() && canAct) this.doAction();
+    if (this.inDialogue) return;
 
     for (const n of this.npcs) n.update(dt);
+    for (const prop of this.props) prop.update(dt);
 
     // pebbles
+    const hitR = TUNING.pebble.hitRadius;
     for (const pb of this.pebbles) {
       pb.update(dt);
       if (pb.dead) continue;
@@ -453,7 +591,7 @@ export class GameScene extends Phaser.Scene {
           n.onBlocked();
           break;
         }
-        if (Math.hypot(pb.x - n.cx, pb.y - n.cy) < 9) {
+        if (Math.hypot(pb.x - n.cx, pb.y - n.cy) < hitR) {
           pb.die('hit');
           n.onPebble(pb);
           break;
@@ -470,11 +608,11 @@ export class GameScene extends Phaser.Scene {
       const d = Math.hypot(h.x - p.cx, h.y - p.cy);
       if (!h.reflected) {
         if (d < TUNING.parry.radius * 1.5) parryReady = true;
-        if (d < 7) {
-          if (this.hurt(TUNING.doom.headlinePenalty)) this.popText(p.x, p.y - 20, 'DOOMED!', '#ff6b81');
+        if (d < 9) {
+          if (this.hurt(TUNING.doom.headlinePenalty)) this.popText(p.x, p.y - 34, 'DOOMED!', '#ff6b81');
           h.die();
         }
-      } else if (h.target && h.target.state === 'locked' && Math.hypot(h.x - h.target.cx, h.y - h.target.cy) < 10) {
+      } else if (h.target && h.target.state === 'locked' && Math.hypot(h.x - h.target.cx, h.y - h.target.cy) < 12) {
         h.target.onReflectHit();
         h.die();
       }
@@ -490,8 +628,15 @@ export class GameScene extends Phaser.Scene {
       this.coneGfx.fillPoints(n.cone, true);
     }
 
-    // aim marker
+    // aim marker and talk tag
     const t = this.aimTarget;
+    const tk = this.talkTarget;
+    if (tk && !parryReady) {
+      this.talkTag.setVisible(true).setPosition(tk.x, tk.y - 46 + Math.sin(time / 180) * 1.5);
+      if (tk.bubble) tk.bubble.setVisible(false);
+    } else {
+      this.talkTag.setVisible(false);
+    }
     if (t) {
       const td = Math.hypot(t.cx - p.cx, t.cy - p.cy) || 1;
       const good = t.isVulnerableTo((t.cx - p.cx) / td, (t.cy - p.cy) / td);
@@ -499,7 +644,13 @@ export class GameScene extends Phaser.Scene {
       this.aimDot.setVisible(false);
     } else {
       this.reticle.setVisible(false);
-      this.aimDot.setVisible(!this.ending || this.freeRoam).setPosition(p.cx + p.facing.x * 16, p.cy + p.facing.y * 16);
+      this.aimDot.setVisible(canAct && !tk).setPosition(p.cx + p.facing.x * 18, p.cy + p.facing.y * 18);
+    }
+
+    // ambient effects follow the camera
+    if (this.ambient) {
+      const v = this.cameras.main.worldView;
+      this.ambient.setPosition(v.x - 20, v.y - 20);
     }
 
     // the Algorithm meter
