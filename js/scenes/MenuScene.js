@@ -17,6 +17,7 @@ export class MenuScene extends Phaser.Scene {
     const W = this.scale.width;
     const H = this.scale.height;
     this.cameras.main.setBackgroundColor('#0d0b16');
+    this.leaving = false; // the scene object is reused, so reset this every time the menu opens
     this.input.keyboard.enableGlobalCapture();
     this.drawCity(W, H);
 
@@ -24,15 +25,15 @@ export class MenuScene extends Phaser.Scene {
     this.crowd = [];
     const xs = [96, 196, 296, 664, 764, 864];
     CROWD.forEach((id, i) => {
-      const spr = this.add.image(xs[i], 444, `ch_${id}_gray`, 'idle0').setOrigin(0.5, 1).setScale(3);
+      const spr = this.add.image(xs[i], 444, `ch_${id}_gray`, 'down_idle0').setOrigin(0.5, 1).setScale(3);
       const glow = this.add.image(xs[i] + 8, 396, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(0x7fd1ff).setAlpha(0.5).setScale(1.8);
-      this.time.addEvent({ delay: 450 + i * 40, loop: true, callback: () => spr.setFrame(spr.frame.name === 'idle0' ? 'idle1' : 'idle0') });
+      this.time.addEvent({ delay: 450 + i * 40, loop: true, callback: () => spr.setFrame(spr.frame.name === 'down_idle0' ? 'down_idle1' : 'down_idle0') });
       this.crowd.push({ spr, glow, id, freed: false });
     });
     const profile = Hero.get();
     buildHero(this, profile);
-    this.hero = this.add.image(W / 2, 444, `${heroKey(profile)}_color`, 'idle0').setOrigin(0.5, 1).setScale(3);
-    this.time.addEvent({ delay: 500, loop: true, callback: () => this.hero.setFrame(this.hero.frame.name === 'idle0' ? 'idle1' : 'idle0') });
+    this.hero = this.add.image(W / 2, 444, `${heroKey(profile)}_color`, 'down_idle0').setOrigin(0.5, 1).setScale(3);
+    this.time.addEvent({ delay: 500, loop: true, callback: () => this.hero.setFrame(this.hero.frame.name === 'down_idle0' ? 'down_idle1' : 'down_idle0') });
     this.hearts = this.add.particles(0, 0, 'heart', {
       speed: { min: 20, max: 60 }, angle: { min: 240, max: 300 }, lifespan: 1000,
       scale: { start: 2, end: 0 }, emitting: false,
@@ -53,9 +54,9 @@ export class MenuScene extends Phaser.Scene {
     const label = !hasHero ? 'PLAY' : save.cleared.some(Boolean) ? 'CONTINUE' : 'PLAY';
     this.mainButtons = [
       makeButton(this, W / 2, 200, label, () => this.play(next), { w: 280, h: 54, size: 18 }),
-      makeButton(this, W / 2 - 190, 266, 'LEVELS', () => this.showLevels(true), { w: 170, h: 44, size: 11, color: 0x3fe8ff, enabled: hasHero }),
+      makeButton(this, W / 2 - 190, 266, 'LEVELS', () => this.showLevels(true), { w: 170, h: 44, size: 11, color: 0x3fe8ff }),
       makeButton(this, W / 2, 266, 'WATCH INTRO', () => this.go('Intro', { next: 'menu' }), { w: 190, h: 44, size: 11, color: 0xffe066 }),
-      makeButton(this, W / 2 + 190, 266, 'EDIT HERO', () => this.go('Create', { next: 'menu' }), { w: 170, h: 44, size: 11, color: 0x7bd36a, enabled: hasHero }),
+      makeButton(this, W / 2 + 190, 266, hasHero ? 'EDIT HERO' : 'CREATE HERO', () => this.go('Create', { next: 'menu' }), { w: 170, h: 44, size: 11, color: 0x7bd36a }),
     ];
     if (hasHero) {
       this.add.text(W / 2, 470, profile.name.toUpperCase(), { fontFamily: FONT, fontSize: '11px', color: '#ffffff', stroke: '#000000', strokeThickness: 4 }).setOrigin(0.5);
@@ -82,7 +83,7 @@ export class MenuScene extends Phaser.Scene {
     kb.on('keydown-M', () => this.toggleMute());
     for (let i = 0; i < 4; i++) {
       kb.on(`keydown-${['ONE', 'TWO', 'THREE', 'FOUR'][i]}`, () => {
-        if (hasHero && (i < Save.load().unlocked || DEBUG)) this.startLevel(i);
+        if (i < Save.load().unlocked || DEBUG) this.startLevel(i);
       });
     }
   }
@@ -92,9 +93,9 @@ export class MenuScene extends Phaser.Scene {
     return 0;
   }
 
-  // First PLAY: intro, then hero creation, then level 1.
+  // First PLAY: intro (unless already seen), then hero creation, then the level.
   play(level) {
-    if (!Hero.exists()) this.go('Intro', { next: 'create' });
+    if (!Hero.exists() && !Save.load().seenIntro) this.go('Intro', { next: 'create' });
     else this.startLevel(level);
   }
 
@@ -141,7 +142,7 @@ export class MenuScene extends Phaser.Scene {
       this.time.delayedCall(1200, () => {
         this.crowd.forEach((c) => {
           c.freed = false;
-          c.spr.setTexture(`ch_${c.id}_gray`, 'idle0');
+          c.spr.setTexture(`ch_${c.id}_gray`, 'down_idle0');
           c.glow.setVisible(true);
         });
       });
@@ -150,7 +151,7 @@ export class MenuScene extends Phaser.Scene {
     const c = Phaser.Utils.Array.GetRandom(locked);
     c.freed = true;
     c.spr.setTexture(`ch_${c.id}_color`, 'cheer');
-    this.time.delayedCall(700, () => c.freed && c.spr.setFrame('idle0'));
+    this.time.delayedCall(700, () => c.freed && c.spr.setFrame('down_idle0'));
     c.glow.setVisible(false);
     this.hearts.explode(4, c.spr.x, c.spr.y - 90);
   }
@@ -191,7 +192,9 @@ export class MenuScene extends Phaser.Scene {
     this.muteBtn.label.setText(this.muteLabel());
   }
 
+  // Without a hero yet, make one first and then start the level.
   startLevel(i) {
-    this.go('Game', { level: i });
+    if (!Hero.exists()) this.go('Create', { next: 'game', level: i });
+    else this.go('Game', { level: i });
   }
 }

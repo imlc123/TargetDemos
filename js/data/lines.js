@@ -91,6 +91,17 @@ export const LINES = {
     'Personalized ads unlocked. Freedom locked. Try again.',
   ],
   contentified: ['CONTENT-IFIED!', 'POSTED!', 'TAGGED!'],
+  boss: {
+    intro: ['Nothing matters. Refreshing.', 'You logged off? Cute. Everyone comes back.'],
+    summon: ['Come back. The feed misses you.', 'One more scroll. For me.', 'You were happier online. Admit it.'],
+    shield: ['Nothing can reach me in here.', 'I have millions of followers. You have... flowers?'],
+    open: ['Wait. Where did everyone go?', 'My shield... it needs them.'],
+    hurt: ['My phone... it CRACKED?', 'That was my good screen!', 'Fine. FINE. New strategy.'],
+    phase: ['GRINDSET MODE. Line goes UP.', 'Smile for the stream!', 'Here comes the doom.'],
+    dodge: ['Sell-off? Never.', 'Not my angle!', 'Can\'t hear you over the news.'],
+    defeat: ['...oh. It\'s quiet.', 'Huh. My hands are shaking.'],
+  },
+  relapse: ['It pulled me back in!', 'Just one more scroll...', 'Noooo, my notifications!', 'I was doing SO well.'],
 };
 
 export function pick(list) {

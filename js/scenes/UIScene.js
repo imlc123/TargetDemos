@@ -53,6 +53,14 @@ export class UIScene extends Phaser.Scene {
       this.time.delayedCall(9000, () => this.tweens.add({ targets: hint, alpha: 0, duration: 800 }));
     }
 
+    // boss bar (only during the finale)
+    this.bossBar = this.add.container(W / 2, 54).setVisible(false);
+    const bb = this.add.rectangle(0, 0, 420, 52, 0x140a1e, 0.85).setStrokeStyle(3, 0xff3fb4);
+    const bt = this.add.text(-196, -18, 'THE ENDLESS SCROLL', { fontFamily: FONT, fontSize: '11px', color: '#ff9fd8' });
+    this.bossPips = [0, 1, 2].map((i) => this.add.rectangle(130 + i * 26, -12, 20, 10, 0xff3fb4).setStrokeStyle(2, 0xffffff));
+    this.bossStatus = this.add.text(0, 10, '', { fontFamily: FONT, fontSize: '10px', color: '#ffffff' }).setOrigin(0.5, 0);
+    this.bossBar.add([bb, bt, ...this.bossPips, this.bossStatus]);
+
     this.touch = new TouchControls(this, this.registry.get('touch'));
     this.input.keyboard.on('keydown-M', () => this.toggleMute());
     this.events.on('shutdown', () => this.touch.destroy());
@@ -120,7 +128,15 @@ export class UIScene extends Phaser.Scene {
     this.warn.setText(r > 0.7 ? 'LOG OFF!' : '');
     this.warn.setVisible(Math.floor(this.time.now / 300) % 2 === 0);
     this.vignette.setAlpha(Math.max(0, (r - 0.35) / 0.65) * 0.9);
-    this.freedText.setText(`FREED ${g.freedCount}/${g.total}`);
+    this.freedText.setText(g.level.boss ? `FREED ${g.freedCount}` : `FREED ${g.freedCount}/${g.total}`);
+    const b = g.boss;
+    this.bossBar.setVisible(!!b);
+    if (b) {
+      this.bossPips.forEach((pip, i) => pip.setFillStyle(i < 3 - b.cracks ? 0xff3fb4 : 0x2a1f44));
+      this.bossStatus.setText(b.statusText());
+      this.bossStatus.setColor(b.mode === 'open' ? '#9fffc0' : '#ffffff');
+    }
+    this.levelText.setVisible(!b);
     this.levelText.setText(g.level.name.toUpperCase());
     this.touch.update(g);
   }

@@ -1,6 +1,7 @@
 import { buildEffectTextures } from '../art/pixels.js';
 import { buildTileTextures } from '../art/tiles.js';
-import { buildHero } from '../art/sprites.js';
+import { buildHero, buildSlingshot } from '../art/sprites.js';
+import { buildBossTextures } from '../art/boss.js';
 import { buildNamedCharacters } from '../systems/People.js';
 import { START_LEVEL, DEBUG, GALLERY } from '../config.js';
 import { Save } from '../systems/Save.js';
@@ -17,6 +18,8 @@ export class BootScene extends Phaser.Scene {
     buildTileTextures(this);
     buildNamedCharacters(this);
     buildHero(this, Hero.get());
+    buildSlingshot(this);
+    buildBossTextures(this);
     // Soft gradients look better smoothed than pixelated.
     for (const key of ['glow', 'aura', 'vignette']) {
       this.textures.get(key).setFilter(Phaser.Textures.FilterMode.LINEAR);

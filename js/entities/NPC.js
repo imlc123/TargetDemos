@@ -1,6 +1,6 @@
 import { TUNING, FONT, TILE } from '../config.js';
 import { LINES, pick } from '../data/lines.js';
-import { KINDS, PHONE_AT } from '../art/sprites.js';
+import { KINDS, PHONE_AT, facingFor } from '../art/sprites.js';
 import { Sfx } from '../systems/Sfx.js';
 
 const { Vector2 } = Phaser.Math;
@@ -10,7 +10,7 @@ const rand = Phaser.Math.FloatBetween;
 // getting freed, talking, and what freed people do afterwards.
 export class NPC extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, kind, person) {
-    super(scene, x, y, `${person.tex}_gray`, 'idle0');
+    super(scene, x, y, `${person.tex}_gray`, 'down_idle0');
     this.kind = kind;
     this.person = person;
     this.variant = 'gray';
@@ -19,6 +19,8 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.walkIdx = 0;
     this.idleIdx = 0;
     this.pose = null;
+    this.look = { facing: 'down', flip: false }; // sprite facing
+    this.lockFacing = false; // subclasses steer facing themselves
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 1);
@@ -52,11 +54,20 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
   }
 
   // Where the phone is held (world coords), from the arm pose.
+  // null when the phone is hidden behind the body (facing away).
   phonePos(frame) {
-    const pose = frame === 'cheer' || frame === 'wave' ? 'up' : this.lockedPose;
-    const [hx, hy] = PHONE_AT[pose] || PHONE_AT.phone;
-    const px = this.flipX ? 23 - hx : hx;
-    return { x: this.x - 12 + px + 0.5, y: this.y - 32 + hy + 0.5 };
+    const front = frame === 'cheer' || frame === 'wave';
+    const facing = front ? 'down' : this.look.facing;
+    const pose = front ? 'up' : this.lockedPose;
+    const at = PHONE_AT[facing][pose];
+    if (!at) return null;
+    const px = facing === 'side' && this.look.flip ? 23 - at[0] : at[0];
+    return { x: this.x - 12 + px + 0.5, y: this.y - 32 + at[1] + 0.5 };
+  }
+
+  // Turn to face a direction (or a point, via dx/dy).
+  faceDir(dx, dy) {
+    this.look = facingFor(dx, dy, this.look);
   }
 
   // Whether a pebble flying in direction (dx, dy) would break the phone right now.
@@ -113,20 +124,23 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
       }
     }
 
-    // animation
-    const moving = this.body.velocity.lengthSq() > 25;
+    // animation: face where you walk
+    const v = this.body.velocity;
+    const moving = v.lengthSq() > 25;
+    if (moving && !this.lockFacing) this.faceDir(v.x, v.y);
+    const f = this.look.facing;
     this.animT += dt;
     let frame;
     if (this.pose) frame = this.pose;
     else if (moving) {
       if (this.animT > 0.12) { this.animT = 0; this.walkIdx = (this.walkIdx + 1) % 4; }
-      frame = `walk${this.walkIdx}`;
+      frame = `${f}_walk${this.walkIdx}`;
     } else {
       if (this.animT > 0.45) { this.animT = 0; this.idleIdx ^= 1; }
-      frame = `idle${this.idleIdx}`;
+      frame = `${f}_idle${this.idleIdx}`;
     }
     if (this.frame.name !== frame) this.setFrame(frame);
-    if (Math.abs(this.body.velocity.x) > 4) this.setFlipX(this.body.velocity.x < 0);
+    this.setFlipX(!this.pose && f === 'side' && this.look.flip);
 
     // attachments
     const d = 100 + this.y;
@@ -134,9 +148,15 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.shadow.setPosition(this.x, this.y - 1);
     if (this.phone) {
       const pp = this.phonePos(frame);
-      const bob = frame === 'idle1' || frame === 'walk2' ? 1 : 0;
-      this.phone.setPosition(pp.x, pp.y + bob).setDepth(d + 0.5);
-      this.glow.setPosition(pp.x, pp.y + bob).setDepth(d + 0.6);
+      const bob = /idle1|walk1|walk3/.test(frame) ? 1 : 0;
+      if (pp) {
+        this.phone.setVisible(true).setPosition(pp.x, pp.y + bob).setDepth(d + 0.5);
+        this.glow.setPosition(pp.x, pp.y + bob).setDepth(d + 0.6);
+      } else {
+        // facing away: the phone is hidden, its glow spills over their head
+        this.phone.setVisible(false);
+        this.glow.setPosition(this.x, this.y - 22).setDepth(d - 0.5);
+      }
     }
     if (this.bubble) {
       this.bubbleT -= dt;
@@ -163,6 +183,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.onFreed();
     this.variant = 'color';
     this.setTexture(`${this.person.tex}_color`, 'cheer');
+    this.lockFacing = false;
     this.setAngle(0);
     this.setVelocity(0, 0);
     this.setScale(1.25);
@@ -186,7 +207,8 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
   startTalking() {
     this.talking = true;
     this.setVelocity(0, 0);
-    this.setFlipX(this.scene.player.x < this.x);
+    const p = this.scene.player;
+    this.faceDir(p.x - this.x, p.y - this.y);
     if (this.bubble) this.bubble.setVisible(false);
     if (this.mode === 'sniff') this.scene.releaseFlower(this);
     if (this.partner) this.partner.releaseChat?.();
@@ -225,7 +247,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
         break;
       case 'sniff':
         this.setVelocity(0, 0);
-        if (Math.random() < dt * 2.5) this.scene.fx.pollen.explode(2, this.x + (this.flipX ? -5 : 5), this.y - 8);
+        if (Math.random() < dt * 2.5) this.scene.fx.pollen.explode(2, this.x + (this.look.flip ? -5 : 5), this.y - 8);
         if (Math.random() < dt * 0.8) this.scene.fx.heart.explode(1, this.x, this.y - 30);
         if (this.modeT <= 0) {
           this.scene.releaseFlower(this);
@@ -234,7 +256,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
         break;
       case 'chat':
         this.setVelocity(0, 0);
-        if (this.partner) this.setFlipX(this.partner.x < this.x);
+        if (this.partner) this.faceDir(this.partner.x - this.x, 0);
         if (Math.random() < dt * 0.6) this.scene.fx.heart.explode(1, this.x, this.y - 30);
         if (this.modeT <= 0) this.endChat();
         break;
@@ -278,7 +300,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     if (this.purpose === 'flower') {
       this.mode = 'sniff';
       this.modeT = rand(2.5, 4);
-      this.setFlipX(this.target.x < this.x);
+      this.faceDir(this.target.x - this.x, this.target.y - this.y);
       Sfx.play('pop');
     } else if (this.purpose === 'chat' && this.partner && this.partner.mode === 'await' && !this.partner.talking) {
       const pair = pick(LINES.chat);

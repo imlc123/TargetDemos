@@ -45,7 +45,8 @@ export class Prop {
     this.y = y;
     this.cx = x + w / 2;
     this.cy = y + h / 2;
-    this.image = scene.add.image(x, y, propTextureKey(def.type, def.text, false)).setOrigin(0).setDepth(depth);
+    this.sc = def.scale || 1;
+    this.image = scene.add.image(x, y, propTextureKey(def.type, def.text, false)).setOrigin(0).setDepth(depth).setScale(this.sc);
 
     if (s.scroll) {
       const sc = s.scroll;
@@ -58,7 +59,7 @@ export class Prop {
       this.pool = scene.add.image(x + w / 2, y + h + 2, 'glow').setBlendMode(Phaser.BlendModes.ADD).setDepth(2.7).setScale(2.4, 1.1).setTint(0x9fd0ff).setAlpha(0.35);
     }
     if (s.iris) {
-      this.iris = scene.add.image(x + 64, y + 29, 'prop_eye_iris').setDepth(3.3);
+      this.iris = scene.add.image(x + 64 * this.sc, y + 29 * this.sc, 'prop_eye_iris').setDepth(3.3).setScale(this.sc);
     }
     if (s.place === 'air') {
       scene.tweens.add({ targets: this.image, y: y - 3, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
@@ -75,8 +76,9 @@ export class Prop {
     if (this.iris && !this.freed) {
       // the Feed watches you
       const p = this.scene.player;
-      const a = Math.atan2(p.cy - (this.y + 29), p.cx - (this.x + 64));
-      this.iris.setPosition(this.x + 64 + Math.cos(a) * 14, this.y + 29 + Math.sin(a) * 4);
+      const s = this.sc;
+      const a = Math.atan2(p.cy - (this.y + 29 * s), p.cx - (this.x + 64 * s));
+      this.iris.setPosition(this.x + (64 + Math.cos(a) * 14) * s, this.y + (29 + Math.sin(a) * 4) * s);
     }
   }
 
@@ -96,7 +98,7 @@ export class Prop {
       s.fx.heart.explode(2, this.cx, this.y);
       Sfx.play('pop');
     }
-    this.image.setScale(1.08);
-    s.tweens.add({ targets: this.image, scale: 1, duration: 300, ease: 'Back.Out' });
+    this.image.setScale(this.sc * 1.08);
+    s.tweens.add({ targets: this.image, scale: this.sc, duration: 300, ease: 'Back.Out' });
   }
 }

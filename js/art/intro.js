@@ -107,26 +107,29 @@ function drawRoom(ctx) {
   rect(ctx, '#f4f4f4', 195, 114, 7, 3); rect(ctx, '#e8433f', 195, 113, 4, 1); rect(ctx, '#c0c0c8', 195, 117, 7, 1);
 }
 
-// The hero lying in bed, seen from the side, holding the phone above their face.
+// The hero lying in bed, seen from the side: head on the pillow, hood up,
+// both arms raised holding the phone above their face.
 const LYING = [
-  '...............SS.......',
-  '..............SSSS......',
-  '...............QQ.......',
-  '..............QQ........',
-  '.............Qq.........',
-  '............QQ..........',
-  '...hHHHH...Qq...........',
-  '..hHHHHHH.QQ............',
-  '.hHHHHHHHHQ.............',
-  '.hHHsSSSSS..............',
-  'hHHsSSSSSSS.............',
-  'hHHsSSEESSSS............',
-  'hHHsSSSSSSSSS...........',
-  'hHHsSSSSSSSs............',
-  '.hHHsSSMMSs.............',
-  '.hHHHsSSSs..............',
-  '..hHHHHHHHHHHHHHHHHHH...',
-  '.hhhhhhhhhhhhhhhhhhhhh..',
+  '....................sSSSs.........',
+  '...................SSSSSSS........',
+  '....................sSSSs.........',
+  '.....................QQq..........',
+  '....................QQq...........',
+  '...................QQq............',
+  '..................QQq.............',
+  '......hhhhhh.....QQq..............',
+  '....hhHHHHHHh...QQq...............',
+  '...hHHHHHHHHHh.QQq................',
+  '..hHHHHSSSSSHHQQq.................',
+  '..hHHHSSSSSSSSHq..................',
+  '.hHHHSSSSWESSSSq..................',
+  '.hHHHSSSSEESSSSS..................',
+  '.hHHHSSSSSSSSSSSS.................',
+  '.hHHHsSSSSSSSSSS..................',
+  '.hHHHHsSSSMMSSs...................',
+  '..hHHHHsSSSSSs....................',
+  '..hhHHHHHHHHHHHHHHHHHHHHHHHHH.....',
+  '...hhhhhhhhhhhhhhhhhhhhhhhhhhh....',
 ];
 
 export function buildIntroTextures(scene) {
@@ -135,9 +138,22 @@ export function buildIntroTextures(scene) {
 
   const pal = { H: '#8a8aa0', h: '#6a6a80', S: '#d8c0a8', s: '#b8a088', E: '#2a1d1a', M: '#9b4a3a', Q: '#8a8aa0', q: '#6a6a80' };
   const grayPal = { ...pal, S: '#a8a8b8', s: '#8a8a9a', E: '#8fe9ff', M: '#6a6a7a' };
-  canvasTexture(scene, 'intro_lying', 24, 18, (ctx) => drawRows(ctx, LYING, grayPal));
-  const startled = LYING.map((r, i) => (i < 9 ? r.replace(/[SsQq]/g, '.') : r)).map((r, i) => (i === 11 ? r.replace('EE', 'WE') : r));
-  canvasTexture(scene, 'intro_lying_startled', 24, 18, (ctx) => drawRows(ctx, startled, { ...grayPal, W: '#ffffff' }));
+  const withOutline = (rows) => {
+    // outline in a dark violet, like the game sprites
+    const H = rows.length;
+    const Wd = rows[0].length;
+    const out = rows.map((r) => r.split(''));
+    for (let y = 0; y < H; y++) for (let x = 0; x < Wd; x++) {
+      if (rows[y][x] !== '.') continue;
+      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => rows[y + dy]?.[x + dx] && rows[y + dy][x + dx] !== '.')) out[y][x] = 'O';
+    }
+    return out.map((r) => r.join(''));
+  };
+  const outlinePal = { O: '#1e1a2e' };
+  canvasTexture(scene, 'intro_lying', 34, 20, (ctx) => drawRows(ctx, withOutline(LYING), { ...grayPal, ...outlinePal }));
+  const startled = LYING.map((r, i) => (i < 10 ? r.slice(0, 14).replace(/[SsQq]/g, '.') + r.slice(14).replace(/[SsQq]/g, '.') : r))
+    .map((r, i) => (i === 12 ? r.replace('WE', 'WW') : i === 13 ? r.replace('EE', 'EE') : r));
+  canvasTexture(scene, 'intro_lying_startled', 34, 20, (ctx) => drawRows(ctx, withOutline(startled), { ...grayPal, ...outlinePal, W: '#ffffff' }));
 
   // neutral hooded hero: gray "holding a phone", color "empty hands", and color "with slingshot"
   const base = { skin: '#d8b090', hair: '#3a2a1a', hairStyle: 'short', hat: 'hood', hatColor: '#ffd23f', top: '#ffd23f', bottom: '#5b6d8a', bottomLayer: 'joggers', shoes: '#f4f4f4' };
