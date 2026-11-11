@@ -1,4 +1,5 @@
-// Level maps. Levels 1-3 are 64 x 40 tiles; the boss arena is 48 x 36 (16px tiles).
+// Level maps. Levels 1-5 are 64 x 40 tiles; the boss arena is 48 x 36 (16px tiles).
+// Maps for Reply Row and Podcast Pier come from tools/genmaps.py.
 //
 // Map legend:
 //   R roof (solid)        W building wall (solid). Stack 2-3 rows of W for a taller front:
@@ -7,10 +8,15 @@
 //   g grass               f flowers (freed people sniff these)
 //   T tree (solid cover)  h hedge (solid cover)    b bench (solid)
 //   B billboard (solid)
+//   ~ water (blocks walking, not shots)   # bridge   _ boardwalk   s sand
+//   c cobblestone         d dirt path              k brick plaza
 //
 // NPC and player positions are tile coordinates [x, y].
 // `who` names a character from js/data/characters.js. NPCs without one are extras.
-// `theme` picks the building style: hustle, aesthetic, scroll, feed.
+// `theme` picks the building style: hustle, aesthetic, reply, scroll, pier, feed.
+// `difficulty` scales fire rates, drains and hit windows (1 = normal).
+// `sky` is [color, alpha] tints: `locked` at the start, `freed` once the block is free.
+// `calm` lists spots for calming cups of tea.
 // `props` are themed decorations (see js/art/props.js). Signs and billboards take
 // text: signs ['LOCKED', 'FREED'], billboards ['LOCKED 1', 'LOCKED 2', 'FREED 1', 'FREED 2'].
 // The boss level lists `waves`: the people the boss pulls back into the feed in each phase.
@@ -22,6 +28,9 @@ export const LEVELS = [
     feature: 'bro',
     theme: 'hustle',
     ambient: 'flyers',
+    difficulty: 0.8,
+    sky: { locked: [0x120a2a, 0.3], freed: [0xfff0c0, 0.04] },
+    calm: [[20, 11], [44, 25], [33, 37]],
     intro: {
       title: 'LEVEL 1: THE HUSTLE DISTRICT',
       subtitle: 'NEW: THE GRINDSET BRO',
@@ -41,6 +50,10 @@ export const LEVELS = [
       { type: 'bro', at: [35, 35] },
     ],
     props: [
+      { type: 'foodtruck', at: [48, 17] },
+      { type: 'fountain', at: [24, 16] },
+      { type: 'vending', at: [10, 10] },
+      { type: 'vending', at: [38, 10] },
       { type: 'ticker', at: [2, 8] },
       { type: 'sign', at: [24, 8], text: ['4AM CLUB', 'SLEEP IN CLUB'], color: '#3dff8a' },
       { type: 'gymwin', at: [4, 22] },
@@ -107,6 +120,9 @@ export const LEVELS = [
     feature: 'influencer',
     theme: 'aesthetic',
     ambient: 'sparkles',
+    difficulty: 0.88,
+    sky: { locked: [0x120a2a, 0.34], freed: [0xffb060, 0.1] },
+    calm: [[20, 11], [44, 25], [33, 37]],
     intro: {
       title: 'LEVEL 2: AESTHETIC AVENUE',
       subtitle: 'NEW: THE AESTHETIC INFLUENCER',
@@ -127,6 +143,8 @@ export const LEVELS = [
       { type: 'bro', at: [55, 11] },
     ],
     props: [
+      { type: 'flowercart', at: [30, 15] },
+      { type: 'fountain', at: [9, 16] },
       { type: 'sign', at: [3, 8], text: ['LATTE ART', 'OPEN MIC'], color: '#ff7eb6' },
       { type: 'sign', at: [47, 8], text: ['GLOW UP SPA', 'NAP ROOM'], color: '#7ee0ff' },
       { type: 'sign', at: [23, 31], text: ['SELFIE SPOT', 'SIT SPOT'], color: '#ff3fb4' },
@@ -189,13 +207,105 @@ export const LEVELS = [
     ],
   },
   {
+    id: 'reply',
+    name: 'Reply Row',
+    feature: 'hottake',
+    theme: 'reply',
+    ambient: 'leaves',
+    difficulty: 0.95,
+    sky: { locked: [0x1a0a30, 0.42], freed: [0xff8a50, 0.12] },
+    intro: {
+      title: 'LEVEL 3: REPLY ROW',
+      subtitle: 'NEW: THE HOT-TAKE POSTER',
+      body:
+        "They have an opinion about you. Once they spot you, they fire bursts of REPLY bubbles, and you can't swat those back.\n\n" +
+        'Duck behind a wall, tree or hedge until they lose you. They keep typing anyway: REPLYING TO THE VOID. Green arrow? Fire!\n\n' +
+        'Hit them while they are watching you and they fire right back.',
+    },
+    player: [3, 9],
+    npcs: [
+      { type: 'hottake', at: [12, 14], who: 'rex' },
+      { type: 'hottake', at: [50, 9], who: 'mona' },
+      { type: 'hottake', at: [28, 26], who: 'theo' },
+      { type: 'hottake', at: [54, 35], who: 'pat' },
+      { type: 'hottake', at: [46, 15] },
+      { type: 'hottake', at: [9, 34] },
+      { type: 'hottake', at: [35, 30] },
+      { type: 'bro', at: [20, 29] },
+      { type: 'influencer', at: [58, 13] },
+    ],
+    calm: [[18, 9], [44, 21], [4, 29], [41, 32]],
+    props: [
+      { type: 'soapbox', at: [13, 11] },
+      { type: 'soapbox', at: [27, 23] },
+      { type: 'statue', at: [52, 32] },
+      { type: 'micstand', at: [33, 26] },
+      { type: 'canalboat', at: [20, 19] },
+      { type: 'canalboat', at: [42, 18] },
+      { type: 'flowercart', at: [57, 15] },
+      { type: 'bikerack', at: [4, 21] },
+      { type: 'lamp', at: [7, 17] },
+      { type: 'lamp', at: [28, 17] },
+      { type: 'lamp', at: [48, 21] },
+      { type: 'lamp', at: [14, 29] },
+      { type: 'sign', at: [4, 7], text: ['WELL ACTUALLY', 'WELL, HELLO'], color: '#ff3b4e' },
+      { type: 'sign', at: [27, 16], text: ['DEBATE ME', 'TEA ME'], color: '#ffd23f' },
+      { type: 'sign', at: [44, 28], text: ['RATIO CAFE', 'RADIO CAFE'], color: '#3fe8ff' },
+    ],
+    map: [
+      'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',
+      'RRRRRRRRRRRRRRRccRRRRRRRRRRRRRRRRRRRRRRRccRRRRRRRRRRRRRRRRRRRRRR',
+      'RRRRRRRRRRRRRRRccRRRRRRRRRRRRRRRRRRRRRRRccRRRRRRRRRRRRRRRRRRRRRR',
+      'RRRRRRRRRRRRRRRccRRRRRRRRRRRRRRRRRRRRRRRccRRRRRRRRRRRRRRRRRRRRRR',
+      'RRRRRRRRRRRRRRRccRRRRRRRRRRRRRRRRRRRRRRRccRRRRRRRRRRRRRRRRRRRRRR',
+      'RWWWWWWWWWWWWWWccWWWWWWWWWWWWWWWWWWWWWWWccWWWWWWWWWWWWWWWWWWWWWR',
+      'RWWWWWWWWWWWWWWccWWWWWWWWWWWWWWWWWWWWWWWccWWWWWWWWWWWWWWWWWWWWWR',
+      'RWWWWWWWWWWWWWWccWWWWWWWWWWWWWWWWWWWWWWWccWWWWWWWWWWWWWWWWWWWWWR',
+      'RccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccR',
+      'RccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccR',
+      'RckkkkkkkkkkkkkkkkkkcccRRRRRRRRRRRRRRRccggggggggTgfgggggfTffggcR',
+      'RckTkkkkkkkkkkkkkkkkcccRRRRRRRRRRRRRRRccfggggfggggfgfggfggggggcR',
+      'RckkkbkkkkkkkkbkkkkkcccRRRRRRRRRRRRRRRccgggghgfggfgghgggfghgggcR',
+      'RckkkkkkkkkkkkkkkkkkcccRRRRRRRRRRRRRRRccddddddddddddddddddddddcR',
+      'RckkkkkkkkkkkkkkkkkkcccWWWWWWWWWWWWWWWccgggggfgggggggggffgfggfcR',
+      'RckkkkkkkkkkkkkkkkkkcccWWWWWWWWWWWWWWWccgggfgggggggggggggggggfcR',
+      'RckkkkkkkkkkkkkkkkkkcccWWWWWWWWWWWWWWWccfggggggggggfgggfgfggfgcR',
+      'RcccccccccccccccccccccccbccccccccccbcccccccccccccccccccccccccccR',
+      'R~~~~~~~~###~~~~~~~~~~~~~~~~~~####~~~~~~~~~~~~~~~~~~###~~~~~~~~R',
+      'R~~~~~~~~###~~~~~~~~~~~~~~~~~~####~~~~~~~~~~~~~~~~~~###~~~~~~~~R',
+      'R~~~~~~~~###~~~~~~~~~~~~~~~~~~####~~~~~~~~~~~~~~~~~~###~~~~~~~~R',
+      'RcccccccccccccccccccbcccccccccccccccccccccccccbccccccccccccccccR',
+      'RcRRRRRRcRRRRRRcckkkkkkkkkkkkkkkkkkkkkkccRRRRRRRRRRcRRRRRRRRRRcR',
+      'RcRRRRRRcRRRRRRcckkTkkkkkkkkkkkkkkkkTkkccRRRRRRRRRRcRRRRRRRRRRcR',
+      'RcRRRRRRcRRRRRRcckkkkkkkkkkkkkkkkkkkkkkccRRRRRRRRRRcRRRRRRRRRRcR',
+      'RcRRRRRRcRRRRRRcckkkkkhkkhkkkkkhkkhkkkkccRRRRRRRRRRcRRRRRRRRRRcR',
+      'RcWWWWWWcWWWWWWcckkkkkkkkkkkkkkkkkkkkkkccWWWWWWWWWWcWWWWWWWWWWcR',
+      'RcWWWWWWcWWWWWWcckkTkkkkkkkkkkkkkkkkTkkccWWWWWWWWWWcWWWWWWWWWWcR',
+      'RcWWWWWWcWWWWWWcckkkkkkkkkkkkkkkkkkkkkkccWWWWWWWWWWcWWWWWWWWWWcR',
+      'RccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccR',
+      'RccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccR',
+      'RggggggggdggfggggggccRRRRRRRRRcRRRRRRRRRRcckkkkkkkkkkkkkkkkkkkcR',
+      'RgggggggfdggggfggggccRRRRRRRRRcRRRRRRRRRRcckkkkkkkkkkkkkkkkkkkcR',
+      'RgfTgggggdggTgffgggccRRRRRRRRRcRRRRRRRRRRcckkkkkkkkkkkkkkkkkkkcR',
+      'RggggfgggdgggggfgggccRRRRRRRRRcRRRRRRRRRRcckkkbkkkbkkkkkbkkkkkcR',
+      'RggggggggdfgffffgggccWWWWWWWWWcWWWWWWWWWWcckkkkkkkkkkkkkkkkkkkcR',
+      'RffggggggdgggggggggccWWWWWWWWWcWWWWWWWWWWcckkkkkkkkkkkkkkkkkkkcR',
+      'RggfggfggdggggfgfggccWWWWWWWWWcWWWWWWWWWWcckkkkkkkkkkkkkkkkkkkcR',
+      'RccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccR',
+      'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',
+    ],
+  },
+  {
     id: 'scroll',
     name: 'The Scroll',
     feature: 'doom',
     theme: 'scroll',
     ambient: 'rain',
+    difficulty: 1.05,
+    sky: { locked: [0x0a0a24, 0.46], freed: [0x203a60, 0.12] },
+    calm: [[20, 11], [44, 25], [32, 38]],
     intro: {
-      title: 'LEVEL 3: THE SCROLL',
+      title: 'LEVEL 4: THE SCROLL',
       subtitle: 'NEW: THE DOOM-SCROLLER',
       body:
         'Their dark aura drains you up close, and your pebbles bounce off it.\n\n' +
@@ -215,6 +325,9 @@ export const LEVELS = [
       { type: 'influencer', at: [25, 26] },
     ],
     props: [
+      { type: 'vending', at: [14, 10] },
+      { type: 'arcade', at: [33, 10] },
+      { type: 'bikerack', at: [26, 3] },
       { type: 'newsscreen', at: [30, 2] },
       { type: 'newsscreen', at: [24, 15] },
       { type: 'newsbox', at: [17, 13] },
@@ -280,6 +393,95 @@ export const LEVELS = [
     ],
   },
   {
+    id: 'pier',
+    name: 'Podcast Pier',
+    feature: 'podcast',
+    theme: 'pier',
+    ambient: 'gulls',
+    difficulty: 1.15,
+    sky: { locked: [0x240a30, 0.34], freed: [0xff7a4a, 0.14] },
+    intro: {
+      title: 'LEVEL 5: PODCAST PIER',
+      subtitle: 'NEW: THE PODCAST GURU',
+      body:
+        'He never stops talking. His voice waves shove you back and bounce your pebbles, and standing close pulls the meter up.\n\n' +
+        "Wait for the AD READ. For a moment there are no waves and no shield. That's your shot.\n\n" +
+        'Overwhelmed? Grab a cup of tea, or stand still next to a bench to calm down.',
+    },
+    player: [3, 9],
+    npcs: [
+      { type: 'podcast', at: [26, 21], who: 'bryce' },
+      { type: 'podcast', at: [10, 16], who: 'sky' },
+      { type: 'podcast', at: [40, 29], who: 'gus' },
+      { type: 'podcast', at: [52, 18], who: 'val' },
+      { type: 'podcast', at: [57, 28] },
+      { type: 'podcast', at: [29, 36] },
+      { type: 'podcast', at: [18, 30] },
+      { type: 'influencer', at: [45, 21] },
+      { type: 'hottake', at: [12, 24] },
+      { type: 'doom', at: [60, 12] },
+    ],
+    calm: [[16, 9], [32, 12], [8, 27], [47, 24], [30, 33]],
+    props: [
+      { type: 'ferris', at: [44, 16] },
+      { type: 'lifeguard', at: [34, 28] },
+      { type: 'deckchairs', at: [8, 30] },
+      { type: 'deckchairs', at: [22, 28] },
+      { type: 'deckchairs', at: [48, 30] },
+      { type: 'foodtruck', at: [5, 21] },
+      { type: 'arcade', at: [38, 12] },
+      { type: 'telescope', at: [31, 37] },
+      { type: 'micstand', at: [25, 21] },
+      { type: 'vending', at: [56, 12] },
+      { type: 'bikerack', at: [12, 8] },
+      { type: 'sign', at: [3, 7], text: ['SUBSCRIBE', 'SURF SHOP'], color: '#3fe8ff' },
+      { type: 'sign', at: [25, 18], text: ['ON AIR', 'OFF AIR'], color: '#ff3b4e' },
+      { type: 'sign', at: [48, 7], text: ['EPISODE 900', 'ICE CREAM'], color: '#ffd23f' },
+    ],
+    map: [
+      'RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR',
+      'RRRRRRRRRRRRRRRRRRRR__RRRRRRRRRRRRRRRRRRRRRR_RRRRRRRRRRRRRRRRRRR',
+      'RRRRRRRRRRRRRRRRRRRR__RRRRRRRRRRRRRRRRRRRRRR_RRRRRRRRRRRRRRRRRRR',
+      'RRRRRRRRRRRRRRRRRRRR__RRRRRRRRRRRRRRRRRRRRRR_RRRRRRRRRRRRRRRRRRR',
+      'RRRRRRRRRRRRRRRRRRRR__RRRRRRRRRRRRRRRRRRRRRR_RRRRRRRRRRRRRRRRRRR',
+      'RWWWWWWWWWWWWWWWWWWW__WWWWWWWWWWWWWWWWWWWWWW_WWWWWWWWWWWWWWWWWWR',
+      'RWWWWWWWWWWWWWWWWWWW__WWWWWWWWWWWWWWWWWWWWWW_WWWWWWWWWWWWWWWWWWR',
+      'RWWWWWWWWWWWWWWWWWWW__WWWWWWWWWWWWWWWWWWWWWW_WWWWWWWWWWWWWWWWWWR',
+      'R______________________________________________________________R',
+      'R______________________________________________________________R',
+      'R______________________________________________________________R',
+      'Rpppppppppppppp__RRRRRR_RRRRRRR__ppppppppppppppppppppppppppppppR',
+      'RppppppppTppppp__RRRRRR_RRRRRRR__ppppppppppppppppppppppppppppppR',
+      'Rpppppppppppppp__RRRRRR_RRRRRRR__pppTppppppppppppppppppppppTpppR',
+      'RpppbpppTppbppp__RRRRRR_RRRRRRR__ppppppppppppppppppppppppppppppR',
+      'Rpppppppppppppp__RRRRRR_RRRRRRR__phpppppppppppppppppppppppphpppR',
+      'RpppppppppppTpp__WWWWWW_WWWWWWW__ppppppppppppppppppppppppppppppR',
+      'Rpppppppppppppp__WWWWWW_WWWWWWW__ppppppppppppppppppppppppppppppR',
+      'RpppppppTppppTp__WWWWWW_WWWWWWW__ppppppppppppppppppppppppppppppR',
+      'Rpppbppppppbppp__pppppppppppppp__ppppppppppppppppppppppppppppppR',
+      'RppppppTppppppp__pphpppppppphpp__pppTppppppppppppppppppppppTpppR',
+      'Rpppppppppppppp__pppppppppppppp__pppppppppphpppppppppppppppppppR',
+      'Rpppppppppppppp__pppppppppppppp__ppppppppppppppppppppppppppppppR',
+      'R______________________________________________________________R',
+      'R________________________b_____________b_______________________R',
+      'R______________________________________________________________R',
+      'TssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssT',
+      'TsssssssssssssssssssssssssssssssssssssssssssssTssssssssssssssssT',
+      'TssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssT',
+      'TsssssssssssssssssssssssssssssssssssTssssssssssssssssssssssssTsT',
+      'TssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssT',
+      'TsssTsssssssssssssssssssssssssssssssTssssssssssssssssTsssssssssT',
+      'TssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssT',
+      '~~~~~~~~~~~~~~~~~~~~~~~~~~~~____~~~~~~~~~~~~~~~~~~___~~~~~~~~~~~',
+      '~~~~~~~~~~~~~~~~~~~~~~~~~~~~____~~~~~~~~~~~~~~~~~~___~~~~~~~~~~~',
+      '~~~~~~~~~~~~~~~~~~~~~~~~~~~~____~~~~~~~~~~~~~~~~~~___~~~~~~~~~~~',
+      '~~~~~~~~~~~~~~~~~~~~~~~~~~~~____~~~~~~~~~~~~~~~~~~___~~~~~~~~~~~',
+      '~~~~~~~~~~~~~~~~~~~~~~~~~~~~____~~~~~~~~~~~~~~~~~~___~~~~~~~~~~~',
+      '~~~~~~~~~~~~~~~~~~~~~~~~~~________~~~~~~~~~~~~~~~~___~~~~~~~~~~~',
+      '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~',
+    ],
+  },
+  {
     id: 'feed',
     name: 'The Feed',
     feature: 'boss',
@@ -287,6 +489,9 @@ export const LEVELS = [
     boss: true,
     theme: 'feed',
     ambient: 'badges',
+    difficulty: 1,
+    sky: { locked: [0x120a2a, 0.38], freed: [0x3a1a5a, 0.08] },
+    calm: [[5, 25], [40, 25]],
     intro: {
       title: 'FINALE: THE FEED',
       subtitle: 'BOSS: THE ENDLESS SCROLL',
@@ -299,10 +504,11 @@ export const LEVELS = [
     player: [24, 30],
     boss: { at: [24, 19] },
     // who the boss pulls back in, phase by phase (named people first, then extras)
+    // `who` lists [type, character] pairs; `extras` are the types of the unnamed summons
     waves: [
-      { type: 'bro', who: ['chad', 'marcus', 'tyler', 'gordon'] },
-      { type: 'influencer', who: ['brooke', 'jade', 'sage', 'luna'] },
-      { type: 'doom', who: ['doug', 'priya', 'ray', 'nell'] },
+      { who: [['bro', 'chad'], ['hottake', 'rex'], ['bro', 'marcus'], ['hottake', 'mona']], extras: ['bro', 'hottake'] },
+      { who: [['influencer', 'brooke'], ['podcast', 'bryce'], ['influencer', 'jade'], ['podcast', 'sky']], extras: ['influencer', 'podcast'] },
+      { who: [['doom', 'doug'], ['hottake', 'theo'], ['podcast', 'gus'], ['doom', 'priya']], extras: ['doom', 'hottake', 'podcast'] },
     ],
     spawnPoints: [[5, 18], [42, 18], [9, 28], [38, 28], [16, 22], [31, 22], [4, 32], [43, 32]],
     npcs: [],

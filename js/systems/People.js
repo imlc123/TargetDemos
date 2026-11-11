@@ -9,7 +9,7 @@ export function buildNamedCharacters(scene) {
   for (const [id, c] of Object.entries(CHARACTERS)) {
     const look = { ...c.look, kind: c.kind };
     buildCharacter(scene, `ch_${id}`, look);
-    buildPortrait(scene, `pt_${id}`, look, c.kind, seedOf(id));
+    buildPortrait(scene, `pt_${id}`, look, c.kind, seedOf(id), `gen:portraits/${id}`);
   }
 }
 

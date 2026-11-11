@@ -33,6 +33,8 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.glow = scene.add.image(x, y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setScale(0.6).setAlpha(0.5).setTint(0x7fd1ff);
     this.bubble = null;
     this.bubbleT = 0;
+    // a green arrow over the head whenever the phone can be broken
+    this.openTag = scene.add.image(x, y, 'opentag').setVisible(false);
     this.talkT = rand(0.5, 4);
     this.bubbleLift = 38;
     this.talked = false;
@@ -68,6 +70,11 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
   // Turn to face a direction (or a point, via dx/dy).
   faceDir(dx, dy) {
     this.look = facingFor(dx, dy, this.look);
+  }
+
+  // True while this person's phone can be broken from any side (shows the green arrow).
+  isOpen() {
+    return false;
   }
 
   // Whether a pebble flying in direction (dx, dy) would break the phone right now.
@@ -158,6 +165,9 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
         this.glow.setPosition(this.x, this.y - 22).setDepth(d - 0.5);
       }
     }
+    const open = this.state === 'locked' && this.isOpen();
+    this.openTag.setVisible(open);
+    if (open) this.openTag.setPosition(this.x, this.y - 48 + Math.sin(this.scene.time.now / 110) * 2).setDepth(5001);
     if (this.bubble) {
       this.bubbleT -= dt;
       this.bubble.setPosition(this.x, this.y - this.bubbleLift);

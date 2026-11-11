@@ -105,8 +105,8 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
     const wave = s.level.waves[this.phase];
     const first = this.need + 1;
     for (let i = 0; i < first; i++) {
-      const who = wave.who[i];
-      s.time.delayedCall(400 + i * 450, () => s.spawnMinion(wave.type, who));
+      const [type, who] = wave.who[i % wave.who.length];
+      s.time.delayedCall(400 + i * 450, () => s.spawnMinion(type, who));
     }
     this.summonPose = 1.6;
     s.time.delayedCall(1800, () => this.mode === 'shielded' && this.say(pick(LINES.boss.summon), 2.4));
@@ -140,7 +140,7 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
     this.say(pick(LINES.boss.shield), 2.2);
     Sfx.play('onboard');
     const wave = s.level.waves[this.phase];
-    for (let i = 0; i < TUNING.boss.regrowNeed; i++) s.time.delayedCall(300 + i * 500, () => s.spawnMinion(wave.type, null));
+    for (let i = 0; i < TUNING.boss.regrowNeed; i++) s.time.delayedCall(300 + i * 500, () => s.spawnMinion(pick(wave.extras), null));
   }
 
   isVulnerableTo(dx, dy) {
@@ -261,7 +261,7 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
         if (this.spawnT <= 0) {
           this.spawnT = C.spawnEvery[this.phase];
           if (locked < C.maxLocked[this.phase]) {
-            s.spawnMinion(s.level.waves[this.phase].type, null);
+            s.spawnMinion(pick(s.level.waves[this.phase].extras), null);
             this.summonPose = 1;
           }
         }

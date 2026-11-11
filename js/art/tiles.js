@@ -12,9 +12,14 @@ export const T = {
   SIDEWALK: 10, SIDEWALK_B: 11, SIDEWALK_C: 12, SIDEWALK_D: 13, CURB_S: 14, CURB_N: 15, CURB_E: 16, CURB_W: 17, DRAIN: 18,
   GRASS: 19, GRASS_B: 20, GRASS_C: 21, GRASS_D: 22, FLOWER: 23, FLOWER_B: 24, TREE: 25, BENCH: 26, HEDGE: 27,
   PLAZA: 28, PLAZA_B: 29, PLAZA_C: 30, BILLBOARD: 31,
+  // water tiles come in pairs: the second of each pair is the next shimmer frame
+  WATER: 32, WATER_B: 33, BANK: 34, BANK_B: 35, SHORE: 36, SHORE_B: 37,
+  SAND: 38, SAND_B: 39, SAND_C: 40, BOARD: 41, BOARD_B: 42, BRIDGE: 43, COBBLE: 44, COBBLE_B: 45, DIRT: 46, BRICK: 47, BRIDGE_L: 48, BRIDGE_R: 49,
 };
-export const THEMES = ['hustle', 'aesthetic', 'scroll', 'feed'];
-const THEMED_BASE = 32;
+export const THEMES = ['hustle', 'aesthetic', 'scroll', 'feed', 'reply', 'pier'];
+// the new themes reuse an older theme's building shapes with their own colors
+const STYLE_OF = { reply: 'scroll', pier: 'aesthetic' };
+const THEMED_BASE = 50;
 export const K = {
   ROOF: 0, ROOF_DETAIL: 1, ROOF_EAVE: 2, WALL_TOP: 3, WALL_TOP_LIT: 4, WALL_MID: 5, WALL_MID_LIT: 6,
   WALL_GROUND: 7, WALL_GROUND_ALT: 8, DOOR: 9,
@@ -23,9 +28,17 @@ const PER_THEME = 10;
 export const themed = (theme, k) => THEMED_BASE + THEMES.indexOf(theme) * PER_THEME + k;
 export const TILE_COUNT = THEMED_BASE + THEMES.length * PER_THEME;
 export const FLOWER_IDS = [T.FLOWER, T.FLOWER_B];
+// first frame of each animated water pair
+export const WATER_IDS = [T.WATER, T.BANK, T.SHORE];
+
+// Water can't be walked on, but pebbles and shots fly over it.
+export function isWaterTile(id) {
+  return id >= T.WATER && id <= T.SHORE_B;
+}
 
 export function isSolidTile(id) {
   if (id >= THEMED_BASE) return true;
+  if (isWaterTile(id)) return true;
   return id === T.TREE || id === T.BENCH || id === T.HEDGE || id === T.BILLBOARD;
 }
 export const SOLID = Array.from({ length: TILE_COUNT }, (_, i) => i).filter(isSolidTile);
@@ -42,6 +55,13 @@ const GROUND = {
   plaza: '#d0c0a0', plazaLo: '#b8a684', plazaHi: '#e2d6bc', plazaLine: '#a39272', inlay: '#c47a52',
   planter: '#9a7650', planterLo: '#6e5034', hedge: '#4fa046', hedgeLo: '#357a34', hedgeHi: '#7cc86a',
   frame: '#2a2a33', screen: '#7fd1ff', screen2: '#7bd36a', screenText: '#ffffff', sun: '#ffe066',
+  water: '#3f8fd0', waterLo: '#2f74b4', waterHi: '#8fd0f4', waterDeep: '#285e9c', foam: '#f0fbff', foamLo: '#c4e6f6',
+  bank: '#9a9284', bankHi: '#bdb5a6', bankLo: '#6a6458', bankShadow: '#24548c',
+  sand: '#ecd49a', sandLo: '#d4b87c', sandHi: '#f8e6b4', shell: '#ffffff', shellPink: '#f7a6b8', star: '#ff8a5c',
+  plank: '#b47c4a', plankLo: '#8a5a32', plankHi: '#d49e66', plankGap: '#4e3220', nail: '#3a2a20', rail: '#6e4428', railHi: '#9a643a',
+  cobble: '#a69e92', cobbleLo: '#7e776c', cobbleHi: '#cac2b4', cobbleGap: '#5a544c', moss: '#6f9a4a',
+  dirt: '#b08250', dirtLo: '#8c6640', dirtHi: '#caa070',
+  brick: '#b85a40', brickLo: '#904430', brickHi: '#d67c5e', mortar: '#d8c8b0',
 };
 const GROUND_GRAY_KEEP = { screen: '#ff3fb4', screen2: '#3fe8ff', sun: '#ff3fb4', screenText: '#ffffff', frame: '#1c1c24' };
 
@@ -63,6 +83,18 @@ const THEME_PAL = {
     stone: '#5e5852', stoneLo: '#47423d', door: '#4a4a54', detail: '#d0d0d6', detailLo: '#8a8a92', plant: '#5a7a4a',
     blind: '#b8b0a0', tag: '#ff3fb4', shutter: '#8c8c96', shutterLo: '#6c6c76',
   },
+  reply: {
+    roof: '#4a3a3a', roofLo: '#3a2c2c', roofHi: '#5e4a48', trim: '#e0c89a', trimLo: '#a88e62', trimHi: '#f4e2b8',
+    wall: '#a8503c', wallLo: '#8a3e2e', wallHi: '#c46a52', mullion: '#4a2e24', win: '#2a2a3a', winLit: '#ffc46a', winLit2: '#ffe2a8',
+    stone: '#8a7a6a', stoneLo: '#6a5c4e', door: '#3a5a7a', detail: '#e0c89a', detailLo: '#8a7a6a', plant: '#5a8a4a',
+    blind: '#e8d8b0', tag: '#ff3b4e', shutter: '#3a6a5a', shutterLo: '#2a5246',
+  },
+  pier: {
+    roof: '#4a8ab0', roofLo: '#346a8c', roofHi: '#6aaad0', trim: '#ffffff', trimLo: '#d0d8dc', trimHi: '#ffffff',
+    wall: '#f4ecd8', wallLo: '#dcd0b4', wallHi: '#fff8e8', mullion: '#ffffff', win: '#6ac0dc', winLit: '#ffe8a0', winLit2: '#fff6d8',
+    stone: '#d8c8a8', stoneLo: '#b8a684', door: '#2a7aa0', detail: '#ff7a5a', detailLo: '#c85a40', plant: '#5fbf6a',
+    awning: '#2ab0c0', awningLo: '#1a8a98', shutter: '#ff8a6a', shutterLo: '#d86a4a',
+  },
   feed: {
     roof: '#2a2438', roofLo: '#1e1a2a', roofHi: '#3a3250', trim: '#b44aff', trimLo: '#7a2ab8', trimHi: '#d89aff',
     wall: '#2f2846', wallLo: '#231e36', wallHi: '#40385c', mullion: '#1a1628', win: '#181628', winLit: '#ff5fd0', winLit2: '#ffb0ea',
@@ -74,6 +106,8 @@ const THEME_GRAY_KEEP = {
   aesthetic: { winLit: '#7fe3ff', winLit2: '#c8f4ff', awning: '#ff3fb4', awningLo: '#c02a88', roof: '#3a3446', roofLo: '#2c2736', roofHi: '#463f52' },
   scroll: { winLit: '#7fe3ff', winLit2: '#c8f4ff', tag: '#ff3fb4', roof: '#35333c', roofLo: '#2a2830', roofHi: '#423f48' },
   feed: { winLit: '#ff3fb4', winLit2: '#ffa0de', trim: '#b44aff', trimHi: '#d89aff', detail: '#ff3b4e', plant: '#3fe8ff' },
+  reply: { winLit: '#ff3b4e', winLit2: '#ff9aa4', tag: '#ff3b4e', roof: '#35303a', roofLo: '#2a2630', roofHi: '#423c48' },
+  pier: { winLit: '#7fe3ff', winLit2: '#c8f4ff', awning: '#3fe8ff', awningLo: '#2ab0c0', roof: '#3a3a46', roofLo: '#2c2c36', roofHi: '#46465a' },
 };
 
 // ---------- drawing helpers ----------
@@ -125,7 +159,96 @@ function drawGround(ctx, id, P, ox) {
     if (v === 1) { r(P.inlay, 5, 5, 6, 6); r(P.plazaHi, 6, 6, 4, 4); r(P.inlay, 7, 7, 2, 2); }
     if (v === 2) { r(P.plazaLine, 3, 2, 1, 3); r(P.plazaLine, 4, 4, 2, 1); r(P.plazaLine, 6, 5, 1, 2); }
   };
+  const water = (seed, f) => {
+    r(P.water, 0, 0, 16, 16);
+    scatter(seed + 40, 3).forEach(([x, y]) => r(P.waterDeep, x, y, 3, 1));
+    // little wave crests that drift sideways between the two frames
+    scatter(seed + 50, 4).forEach(([x, y]) => {
+      const xx = (x + f * 2) % 14;
+      r(P.waterHi, xx, y, 2, 1); r(P.waterLo, xx, y + 1, 3, 1);
+    });
+  };
+  const sand = (seed) => {
+    r(P.sand, 0, 0, 16, 16);
+    scatter(seed + 60, 7).forEach(([x, y]) => r(P.sandLo, x, y, 1, 1));
+    scatter(seed + 70, 5).forEach(([x, y]) => r(P.sandHi, x, y, 1, 1));
+    r(P.sandLo, (seed * 5) % 12, (seed * 3) % 12 + 2, 3, 1);
+  };
+  const planks = (seed) => {
+    r(P.plankGap, 0, 0, 16, 16);
+    for (const y of [0, 4, 8, 12]) {
+      const cut = (hash2(seed, y) % 10) + 3;
+      r(P.plank, 0, y, 16, 3); r(P.plankHi, 0, y, 16, 1); r(P.plankLo, 0, y + 2, 16, 1);
+      r(P.plankGap, cut, y, 1, 3);
+      r(P.nail, (cut + 2) % 16, y + 1); r(P.nail, (cut + 13) % 16, y + 1);
+    }
+  };
+  const cobbles = (seed) => {
+    r(P.cobbleGap, 0, 0, 16, 16);
+    for (let row = 0; row < 4; row++) {
+      const off = row % 2 ? 2 : 0;
+      for (let x = -4 + off; x < 16; x += 5) {
+        const c = hash2(seed + x, row) % 4 === 0 ? P.cobbleLo : P.cobble;
+        r(c, x + 1, row * 4, 4, 3); r(P.cobbleHi, x + 1, row * 4, 3, 1); r(P.cobbleLo, x + 1, row * 4 + 2, 4, 1);
+      }
+    }
+  };
   switch (id) {
+    case T.WATER: water(1, 0); break;
+    case T.WATER_B: water(1, 1); break;
+    case T.BANK:
+    case T.BANK_B:
+      water(2, id - T.BANK);
+      r(P.bankShadow, 0, 4, 16, 2);
+      r(P.bankLo, 0, 0, 16, 4); r(P.bank, 0, 0, 16, 3); r(P.bankHi, 0, 0, 16, 1);
+      for (const x of [3, 9, 14]) r(P.bankLo, x, 0, 1, 3);
+      break;
+    case T.SHORE:
+    case T.SHORE_B: {
+      const f = id - T.SHORE;
+      water(3, f);
+      r(P.sand, 0, 0, 16, 2);
+      for (let x = 0; x < 16; x++) {
+        const h = 2 + ((x + f * 3) % 6 < 3 ? 1 : 0) + f;
+        r(P.foam, x, 2, 1, h - 1); r(P.foamLo, x, h + 1, 1, 1);
+      }
+      break;
+    }
+    case T.SAND: sand(1); break;
+    case T.SAND_B: sand(2); r(P.sandLo, 4, 9, 4, 1); r(P.sandLo, 5, 10, 4, 1); break;
+    case T.SAND_C:
+      sand(3);
+      r(P.shell, 4, 5, 2, 1); r(P.shellPink, 4, 6, 2, 1);
+      r(P.star, 11, 10, 1, 3); r(P.star, 10, 11, 3, 1);
+      break;
+    case T.BOARD: planks(1); break;
+    case T.BOARD_B: planks(2); r(P.plankLo, 6, 5, 3, 1); break;
+    case T.BRIDGE:
+    case T.BRIDGE_L:
+    case T.BRIDGE_R: {
+      planks(3);
+      const rails = id === T.BRIDGE_L ? [0] : id === T.BRIDGE_R ? [14] : [];
+      for (const x of rails) {
+        r(P.rail, x, 0, 2, 16); r(P.railHi, x, 0, 1, 16);
+        for (const y of [1, 9]) r(P.plankGap, x, y, 2, 1);
+      }
+      break;
+    }
+    case T.COBBLE: cobbles(1); break;
+    case T.COBBLE_B: cobbles(2); r(P.moss, 1, 3, 1, 1); r(P.moss, 11, 11, 2, 1); break;
+    case T.DIRT:
+      r(P.dirt, 0, 0, 16, 16);
+      scatter(80, 6).forEach(([x, y]) => r(P.dirtLo, x, y, 2, 1));
+      scatter(90, 4).forEach(([x, y]) => r(P.dirtHi, x, y, 1, 1));
+      break;
+    case T.BRICK:
+      r(P.mortar, 0, 0, 16, 16);
+      for (let row = 0; row < 4; row++) {
+        for (let x = row % 2 ? -4 : 0; x < 16; x += 8) {
+          r(row % 3 === 0 ? P.brickLo : P.brick, x, row * 4, 7, 3); r(P.brickHi, x, row * 4, 7, 1);
+        }
+      }
+      break;
     case T.ROAD: road(1); break;
     case T.ROAD_B:
       road(2);
@@ -206,6 +329,7 @@ function drawGround(ctx, id, P, ox) {
 
 // ---------- buildings ----------
 function drawThemed(ctx, theme, k, P, ox) {
+  const style = STYLE_OF[theme] || theme;
   const { r, disc } = pen(ctx, ox);
   const roofBase = (seed) => {
     r(P.roof, 0, 0, 16, 16);
@@ -217,27 +341,27 @@ function drawThemed(ctx, theme, k, P, ox) {
   };
 
   if (k === K.ROOF || k === K.ROOF_DETAIL || k === K.ROOF_EAVE) {
-    if (theme === 'aesthetic') {
+    if (style === 'aesthetic') {
       r(P.roof, 0, 0, 16, 16);
       for (let y = 0; y < 16; y += 4) {
         const off = (y / 4) % 2 ? 2 : 0;
         for (let x = -off; x < 16; x += 4) { r(P.roofHi, x + 1, y, 2, 1); r(P.roofLo, x, y + 3, 4, 1); r(P.roofLo, x + 3, y + 1, 1, 2); }
       }
-    } else if (theme === 'scroll') {
+    } else if (style === 'scroll') {
       roofBase(3); r(P.roofLo, 0, 7, 16, 1); r(P.roofHi, 0, 8, 16, 1); r(P.roofLo, 9, 0, 1, 7);
       r(P.roofLo, 3, 10, 4, 2); r('#4a5a6a', 4, 10, 2, 1);
-    } else if (theme === 'feed') {
+    } else if (style === 'feed') {
       roofBase(4); r(P.roofLo, 0, 7, 16, 1); r(P.roofLo, 7, 0, 1, 16);
     } else {
       roofBase(2);
     }
     if (k === K.ROOF_DETAIL) {
-      if (theme === 'hustle') {
+      if (style === 'hustle') {
         r(P.roofLo, 3, 12, 11, 2); r(P.detailLo, 3, 4, 10, 9); r(P.detail, 3, 4, 10, 7);
         disc(P.detailLo, 8, 7, 3); disc(P.roofLo, 8, 7, 2); r(P.detail, 8, 5, 1, 5); r(P.detail, 6, 7, 5, 1);
-      } else if (theme === 'aesthetic') {
+      } else if (style === 'aesthetic') {
         r(P.trimLo, 4, 5, 8, 8); r(P.win, 5, 6, 6, 6); r(P.winLit2, 5, 6, 2, 2); r(P.trim, 4, 5, 8, 1);
-      } else if (theme === 'scroll') {
+      } else if (style === 'scroll') {
         disc(P.detailLo, 8, 8, 5); disc(P.detail, 7, 7, 4); r(P.detailLo, 9, 9, 2, 2); r(P.detailLo, 8, 13, 1, 2); r(P.roofLo, 5, 14, 6, 1);
       } else {
         r(P.detailLo, 7, 3, 2, 11); r(P.detailLo, 4, 13, 8, 1); disc(P.detail, 8, 2, 1); r('#ffffff', 8, 2);
@@ -254,7 +378,7 @@ function drawThemed(ctx, theme, k, P, ox) {
   const lit = k === K.WALL_TOP_LIT || k === K.WALL_MID_LIT;
   const ground = k === K.WALL_GROUND || k === K.WALL_GROUND_ALT || k === K.DOOR;
 
-  if (theme === 'hustle') {
+  if (style === 'hustle') {
     r(P.mullion, 0, 0, 16, 16);
     for (const [px, py, w, h] of [[1, 1, 6, 6], [9, 1, 6, 6], [1, 9, 6, 6], [9, 9, 6, 6]]) {
       const on = lit && (px + py) % 16 !== 0;
@@ -269,7 +393,7 @@ function drawThemed(ctx, theme, k, P, ox) {
       if (k === K.DOOR) { r(P.trim, 3, 2, 10, 10); r(P.mullion, 4, 3, 8, 9); r(P.winLit2, 5, 4, 2, 6); r(P.trim, 7, 3, 2, 9); r(P.trimHi, 3, 2, 10, 1); }
       if (k === K.WALL_GROUND_ALT) { r(P.stoneLo, 5, 8, 6, 4); r(P.plant, 6, 5, 4, 4); r(P.trimHi, 7, 5, 1, 1); }
     }
-  } else if (theme === 'aesthetic') {
+  } else if (style === 'aesthetic') {
     brickish();
     r(P.wallLo, 0, 15, 16, 1);
     if (top) { r(P.trim, 0, 0, 16, 2); r(P.trimLo, 0, 2, 16, 1); }
@@ -292,7 +416,7 @@ function drawThemed(ctx, theme, k, P, ox) {
         else { r('#c08a55', 3, 11, 3, 2); r('#ffffff', 9, 10, 3, 3); r('#8a5a3a', 10, 11, 1, 1); }
       }
     }
-  } else if (theme === 'scroll') {
+  } else if (style === 'scroll') {
     r(P.wall, 0, 0, 16, 16);
     scatter(7, 4).forEach(([x, y]) => { r(P.wallLo, x, y, 1, 3); });
     r(P.wallLo, 0, 15, 16, 1);
@@ -410,6 +534,22 @@ export function tileIdFor(rows, x, y, theme) {
     case 'h': return T.HEDGE;
     case 'B': return T.BILLBOARD;
     case 'p': return [T.PLAZA, T.PLAZA, T.PLAZA, T.PLAZA_B, T.PLAZA_C][h % 5];
+    case '~': {
+      const above = rows[y - 1]?.[x];
+      if (above === 's') return T.SHORE;
+      if (above && above !== '~' && above !== '#' && above !== '_') return T.BANK;
+      return T.WATER;
+    }
+    case 's': return [T.SAND, T.SAND, T.SAND_B, T.SAND, T.SAND_C][h % 5];
+    case '_': return h % 4 === 0 ? T.BOARD_B : T.BOARD;
+    case '#': {
+      if (rows[y][x - 1] !== '#') return T.BRIDGE_L;
+      if (rows[y][x + 1] !== '#') return T.BRIDGE_R;
+      return T.BRIDGE;
+    }
+    case 'c': return h % 5 === 0 ? T.COBBLE_B : T.COBBLE;
+    case 'd': return T.DIRT;
+    case 'k': return T.BRICK;
     default: return T.SIDEWALK;
   }
 }

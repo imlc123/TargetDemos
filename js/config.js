@@ -63,6 +63,32 @@ export const TUNING = {
     reflectSpeed: 150,
     stunTime: 3.8,
   },
+  hottake: {
+    speed: 26,
+    sightRange: 140, // how far they spot you (needs a clear line)
+    noticeTime: 0.4, // pause after spotting you, before the first burst
+    burstEvery: [2, 2.6],
+    burstCount: 3,
+    burstGap: 0.36, // wider than the hit grace period, so more than one bubble can land
+    shotSpeed: 88,
+    spread: 9, // degrees
+    shotPenalty: 10,
+    lostTime: 1.5, // out of sight this long and they reply to the void
+    voidTime: 2.6, // the window to break their phone
+  },
+  podcast: {
+    waveEvery: [2.2, 3],
+    waveRange: 96,
+    waveTime: 1.25, // seconds for a wave to reach its full size
+    wavePush: 170,
+    wavePenalty: 5,
+    pullRadius: 58, // standing this close raises the meter
+    pullRate: 8,
+    blockRadius: 40, // pebbles bounce off in here while he talks
+    adEvery: [6, 8],
+    adWarn: 0.8,
+    adTime: 2.3, // the AD READ: the window to break his phone
+  },
   freed: {
     speed: 30,
   },
@@ -84,6 +110,12 @@ export const TUNING = {
     barrageEvery: 3.4,
     barrageCount: [3, 4], // headlines per barrage: shielded, open
     stunTime: 4,
+  },
+  calm: {
+    pickup: 30, // a cup of tea takes this much off the meter
+    respawn: 30,
+    benchRate: 9, // meter per second while sitting on a bench
+    benchDelay: 0.8, // stand still next to a bench this long to sit
   },
   talk: {
     range: 28, // how close you must be to talk to someone

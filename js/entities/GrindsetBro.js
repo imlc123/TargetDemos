@@ -21,6 +21,10 @@ export class GrindsetBro extends NPC {
     this.setPhoneColor(0x3dff8a);
   }
 
+  isOpen() {
+    return this.isVulnerableTo();
+  }
+
   isVulnerableTo() {
     return this.phase === 'dip' && this.dashT <= 0;
   }
@@ -79,14 +83,14 @@ export class GrindsetBro extends NPC {
       this.phaseT = C.warnTime;
     } else if (this.phase === 'warn') {
       this.phase = 'dip';
-      this.phaseT = C.dipTime;
+      this.phaseT = C.dipTime / Math.sqrt(this.scene.diff || 1);
       if (this.playerDist() < 200) {
         Sfx.play('dip');
         this.say(pick(this.lines.dip), 1.6);
       }
     } else {
       this.phase = 'up';
-      this.phaseT = rand(C.upTime[0], C.upTime[1]);
+      this.phaseT = rand(C.upTime[0], C.upTime[1]) * Math.sqrt(this.scene.diff || 1);
     }
   }
 

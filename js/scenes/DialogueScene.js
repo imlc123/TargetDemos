@@ -1,7 +1,7 @@
 import { FONT } from '../config.js';
 import { Hero } from '../systems/Hero.js';
 import { Sfx } from '../systems/Sfx.js';
-import { buildPortrait } from '../art/portraits.js';
+import { buildPortrait, heroGenKey } from '../art/portraits.js';
 import { heroLook, heroKey } from '../art/sprites.js';
 import { RELAPSE_LINES } from '../data/characters.js';
 
@@ -10,7 +10,7 @@ const BROWN2 = 0x8a5a2b;
 const PAPER = 0xf6e7c8;
 const PAPER_DARK = 0xe6d0a4;
 const INK = '#3a2a1a';
-const PITCH = { bro: 0.8, influencer: 1.25, doom: 0.95 };
+const PITCH = { bro: 0.8, influencer: 1.25, doom: 0.95, hottake: 1.1, podcast: 0.7 };
 
 // Stardew-style conversation box with a portrait, name tag, typewriter text
 // and one reply choice.
@@ -72,7 +72,7 @@ export class DialogueScene extends Phaser.Scene {
     // hero portrait (shown while choosing a reply)
     const profile = Hero.get();
     const hk = `pt_${heroKey(profile)}`;
-    buildPortrait(this, hk, heroLook(profile), 'hero', 7);
+    buildPortrait(this, hk, heroLook(profile), 'hero', 7, heroGenKey(profile));
     this.heroBox = this.add.container(0, 0).setVisible(false);
     const hg = this.add.graphics();
     hg.fillStyle(BROWN).fillRect(796, 168, 124, 124);

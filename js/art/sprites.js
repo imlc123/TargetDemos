@@ -357,6 +357,11 @@ function torso(g, f, look) {
       g.z = 11;
       for (const [x, y] of [[9, 15], [10, 16], [11, 17], [12, 17], [13, 16], [14, 15]]) g.set(x, y, 'gold');
     }
+    if (f === 'down' && (look.extras || []).includes('angry')) {
+      // an angry face printed on the hoodie
+      g.z = 11;
+      g.rect(10, 16, 4, 3, 'red'); g.set(10, 16, 'dark'); g.set(13, 16, 'dark'); g.hline(11, 12, 18, 'dark');
+    }
     if ((look.extras || []).includes('headphones')) {
       g.z = 11;
       g.hline(8, 15, 14, 'dark'); g.rect(7, 14, 2, 2, 'hat'); g.rect(15, 14, 2, 2, 'hat');
@@ -579,6 +584,8 @@ export const KINDS = {
   bro: { locked: 'phone', free: 'down', mouth: '#9b4a3a' },
   influencer: { locked: 'up', free: 'down', mouth: '#d9485f' },
   doom: { locked: 'low', free: 'down', mouth: '#7a4a4a' },
+  hottake: { locked: 'phone', free: 'down', mouth: '#8a3a3a' },
+  podcast: { locked: 'up', free: 'down', mouth: '#8a4a3a' },
   hero: { locked: 'phone', free: 'down', mouth: '#9b4a3a' },
   boss: { locked: 'low', free: 'down', mouth: '#5a3a4a' },
 };
@@ -591,7 +598,7 @@ export function lookPalette(look) {
     bottom: look.bottom, hat: look.hatColor || look.top, hat2: shade(look.hatColor || look.top, 0.72),
     shoe: look.shoes || '#f4f4f4', sole: shade(look.shoes || '#f4f4f4', 0.55), sock: '#f4f4f4',
     eye: '#2a1d1a', white: '#ffffff', mouth: kind.mouth, blush: mix(skin, '#ff6f8f', 0.4), gold: '#ffd23f',
-    dark: '#2b2b3a', lens: '#ff7eb6',
+    dark: '#2b2b3a', lens: '#ff7eb6', red: '#ff3b4e',
   };
 }
 

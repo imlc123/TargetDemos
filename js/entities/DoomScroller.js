@@ -31,6 +31,10 @@ export class DoomScroller extends NPC {
     return TUNING.doom.auraRadius * this.auraScale;
   }
 
+  isOpen() {
+    return this.stunT > 0;
+  }
+
   isVulnerableTo() {
     return this.stunT > 0;
   }
@@ -78,7 +82,7 @@ export class DoomScroller extends NPC {
       // fire doom headlines
       this.fireT -= dt;
       if (this.fireT <= 0) {
-        this.fireT = rand(C.fireEvery[0], C.fireEvery[1]);
+        this.fireT = rand(C.fireEvery[0], C.fireEvery[1]) / (s.diff || 1);
         if (!this.activeHeadline && d < C.fireRange && d > 10 && s.lineOfSight(this.cx, this.cy, p.cx, p.cy)) {
           this.activeHeadline = s.spawnHeadline(this, p.cx, p.cy);
           Sfx.play('fire');
@@ -99,7 +103,7 @@ export class DoomScroller extends NPC {
 
   onReflectHit() {
     const s = this.scene;
-    this.stunT = TUNING.doom.stunTime;
+    this.stunT = TUNING.doom.stunTime / Math.sqrt(this.scene.diff || 1);
     s.tweens.killTweensOf(this);
     s.tweens.add({ targets: this, auraScale: 0, duration: 300, ease: 'Sine.In' });
     s.fx.star.explode(10, this.x, this.y - 12);
