@@ -30,16 +30,28 @@ The action button does whatever fits the moment:
 - **Aesthetic Influencer.** Always filming. Stay out of her camera cone or you get "content-ified" (stunned). Hit her phone from **behind**. Hedges and trees block her view.
 - **Doom-Scroller.** Their aura drains you and blocks pebbles. Press action just as a doom headline reaches you to **deflect** it back as good news. That stuns them and drops their guard, and then you can break the phone.
 
+### The final boss: THE ENDLESS SCROLL
+
+A black-pilled doom-scroller crawls out of The Feed's giant screen with every power in the city. The fight has three phases. In each one, the boss raises a **shield** and keeps pulling people you freed earlier back into the feed. Free enough of them to drop the shield, then crack the boss's phone the way that phase demands:
+
+1. **Grindset:** hit it during a **market dip**, while dodging green candles that burst from the ground.
+2. **Influencer:** two camera beams sweep the plaza; hit it from **behind**.
+3. **Doom:** a draining aura and headline barrages; **deflect** a headline to stun it, then hit.
+
+If the Algorithm meter fills, you restart the current phase, not the whole fight. Three cracks and the boss is freed too. You can talk to them afterwards.
+
 ### Your hero
 
 The first time you press PLAY, the intro plays and then you name your hero and choose boy, girl or nonbinary (this sets their look and the pronouns people use for them), plus a skin tone and cap/hoodie colors. Change it any time with **EDIT HERO** on the menu; replay the opening with **WATCH INTRO**.
 
 ### Levels
 
-1. The Hustle District: meet the Grindset Bro
-2. Aesthetic Avenue: meet the Aesthetic Influencer
-3. The Scroll: meet the Doom-Scroller
-4. Finale, The Feed: everyone at once
+1. The Hustle District: meet the Grindset Bro (7 people)
+2. Aesthetic Avenue: meet the Aesthetic Influencer (8 people)
+3. The Scroll: meet the Doom-Scroller (9 people)
+4. Finale, The Feed: the boss fight
+
+Levels 1–3 are 64x40-tile maps with several districts each. Each has four named characters to talk to.
 
 Progress is saved in your browser. The game still works if storage is blocked; it just won't remember progress.
 
@@ -67,13 +79,14 @@ The `.nojekyll` file tells Pages to serve the files exactly as they are.
 - **Characters and their conversations:** `js/data/characters.js` (names, looks, lines, the reply choice, hints and follow-ups; `{name}`, `{they}`, `{them}`, `{their}`, `{theyre}` become the hero's name and pronouns)
 - **Speech bubbles, headlines, jokes:** `js/data/lines.js`
 - **Themed props and signs:** the `props` list of each level in `js/data/levels.js`; prop art is in `js/art/props.js`
-- **Level maps and who's in them:** `js/data/levels.js` (the map legend is at the top of the file)
+- **Level maps and who's in them:** `js/data/levels.js` (the map legend is at the top of the file; stack 2–3 rows of `W` for taller building fronts)
+- **The boss:** tuning is in the `boss` block of `TUNING` in `js/config.js`; who gets pulled back in each phase is the `waves` list of the last level in `js/data/levels.js`; the boss's look is `BOSS_LOOK` in `js/art/boss.js`; their lines are `LINES.boss` in `js/data/lines.js`
 - **Difficulty (speeds, timings, meter):** the `TUNING` object in `js/config.js`
-- **Pixel art:** `js/art/sprites.js` (characters, built from layered text grids), `js/art/portraits.js` (64x64 dialogue portraits), `js/art/tiles.js` (ground and the four building styles), `js/art/intro.js` (the bedroom)
+- **Pixel art:** `js/art/sprites.js` (characters, painted part by part in three facings with colored outlines and hue-shifted shading), `js/art/portraits.js` (64x64 dialogue portraits), `js/art/tiles.js` (ground and the four building styles), `js/art/intro.js` and `js/art/introPanels.js` (the bedroom and the intro's close-up panels), `js/art/boss.js` (the boss)
 
 ### Debug mode
 
-Add `?debug=1` to the URL to unlock all levels and show hitboxes. `?debug=1&level=3` jumps straight to level 3. In debug mode, **N** frees everyone in the level and **K** fills the meter. `?debug=1&gallery=1` opens an art gallery of every sprite, portrait, prop and tile (keys 1-4 switch pages).
+Add `?debug=1` to the URL to unlock all levels and show hitboxes. `?debug=1&level=3` jumps straight to level 3. In debug mode, **N** frees everyone in the level, **K** fills the meter, and **B** drops the boss's shield or cracks its phone. `?debug=1&gallery=1` opens an art gallery of every sprite, portrait, prop and tile (keys 1-4 switch pages).
 
 ## Project layout
 
@@ -85,7 +98,7 @@ js/main.js            game config
 js/config.js          tuning and settings
 js/scenes/            Boot, Menu, Intro, Create (hero), Game, UI (HUD + touch),
                       Card (pop-ups), Dialogue, Gallery (debug)
-js/entities/          Player, Pebble, Headline, Prop, NPC + the three NPC types
+js/entities/          Player, Pebble, Headline, Prop, Boss, NPC + the three NPC types
 js/systems/           Algorithm meter, touch controls, sound, save data, hero, people
 js/art/               all art, drawn in code (pixels, sprites, portraits, tiles, props, intro)
 js/data/              levels, characters and lines
