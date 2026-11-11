@@ -1,7 +1,7 @@
 import { TILE, TUNING, VIEW, FONT, DEBUG } from '../config.js';
 import { LEVELS, normalizeMap } from '../data/levels.js';
 import { LINES, pick } from '../data/lines.js';
-import { T, SOLID, tileIdFor, isSolidTile } from '../art/tiles.js';
+import { T, SOLID, FLOWER_IDS, tileIdFor, isSolidTile } from '../art/tiles.js';
 import { Player } from '../entities/Player.js';
 import { Pebble } from '../entities/Pebble.js';
 import { Headline } from '../entities/Headline.js';
@@ -129,7 +129,7 @@ export class GameScene extends Phaser.Scene {
       const sol = [];
       for (let x = 0; x < row.length; x++) {
         const id = tileIdFor(rows, x, y, theme);
-        if (id === T.FLOWER) this.flowers.push({ x: x * TILE + 8, y: y * TILE + 12, key: `${x},${y}` });
+        if (FLOWER_IDS.includes(id)) this.flowers.push({ x: x * TILE + 8, y: y * TILE + 12, key: `${x},${y}` });
         if (id === T.BILLBOARD) this.billboards.push({ x, y });
         ids.push(id);
         sol.push(isSolidTile(id));
