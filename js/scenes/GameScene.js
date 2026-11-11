@@ -1,15 +1,18 @@
 import { TILE, TUNING, VIEW, FONT, DEBUG } from '../config.js';
 import { LEVELS, normalizeMap } from '../data/levels.js';
 import { LINES, pick } from '../data/lines.js';
-import { T, SOLID, FLOWER_IDS, tileIdFor, isSolidTile } from '../art/tiles.js';
+import { T, SOLID, FLOWER_IDS, WATER_IDS, tileIdFor, isSolidTile, isWaterTile } from '../art/tiles.js';
 import { Player } from '../entities/Player.js';
 import { Pebble } from '../entities/Pebble.js';
 import { Headline } from '../entities/Headline.js';
 import { Prop } from '../entities/Prop.js';
+import { propAvailable } from '../art/props.js';
 import { Boss } from '../entities/Boss.js';
 import { GrindsetBro } from '../entities/GrindsetBro.js';
 import { Influencer } from '../entities/Influencer.js';
 import { DoomScroller } from '../entities/DoomScroller.js';
+import { HotTakePoster } from '../entities/HotTakePoster.js';
+import { PodcastGuru } from '../entities/PodcastGuru.js';
 import { AlgorithmMeter } from '../systems/AlgorithmMeter.js';
 import { personFor } from '../systems/People.js';
 import { NPC } from '../entities/NPC.js';
@@ -17,7 +20,7 @@ import { CHARACTERS } from '../data/characters.js';
 import { Save } from '../systems/Save.js';
 import { Sfx } from '../systems/Sfx.js';
 
-const NPC_CLASSES = { bro: GrindsetBro, influencer: Influencer, doom: DoomScroller };
+const NPC_CLASSES = { bro: GrindsetBro, influencer: Influencer, doom: DoomScroller, hottake: HotTakePoster, podcast: PodcastGuru };
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -41,6 +44,8 @@ export class GameScene extends Phaser.Scene {
     this.sfxThisFrame = new Set();
     this.claimedFlowers = new Map();
     this.meter = new AlgorithmMeter(TUNING.meter);
+    this.diff = this.level.difficulty || 1;
+    this.meter.scale = this.diff;
     this.talkTarget = null;
     this.inDialogue = false;
 
@@ -48,7 +53,7 @@ export class GameScene extends Phaser.Scene {
     this.buildFx();
 
     // themed props (they mark their own footprint as solid)
-    (this.level.props || []).forEach((def) => this.props.push(new Prop(this, def)));
+    (this.level.props || []).filter((def) => propAvailable(this, def.type)).forEach((def) => this.props.push(new Prop(this, def)));
 
     // player
     const [px, py] = this.level.player;
@@ -90,6 +95,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.buildAmbient();
+    this.buildCalm();
 
     // ground-level graphics
     this.coneGfx = this.add.graphics().setDepth(3.5);
@@ -121,7 +127,8 @@ export class GameScene extends Phaser.Scene {
       const intro = this.level.intro;
       this.showCard({
         kind: 'intro', title: intro.title, subtitle: intro.subtitle, body: intro.body,
-        icon: this.featuredTex(), buttons: [{ label: "LET'S GO", action: 'resume' }],
+        icon: this.featuredTex(), art: `gen:cards/card_${this.level.theme || 'hustle'}`,
+        buttons: [{ label: "LET'S GO", action: 'resume' }],
       });
     }
   }
@@ -140,18 +147,25 @@ export class GameScene extends Phaser.Scene {
     this.solid = [];
     this.flowers = [];
     this.billboards = [];
+    this.wet = [];
+    this.waterCells = [];
     rows.forEach((row, y) => {
       const ids = [];
       const sol = [];
+      const wet = [];
       for (let x = 0; x < row.length; x++) {
         const id = tileIdFor(rows, x, y, theme);
         if (FLOWER_IDS.includes(id)) this.flowers.push({ x: x * TILE + 8, y: y * TILE + 12, key: `${x},${y}` });
         if (id === T.BILLBOARD) this.billboards.push({ x, y });
+        if (WATER_IDS.includes(id)) this.waterCells.push([x, y, id]);
         ids.push(id);
-        sol.push(isSolidTile(id));
+        // water blocks walking (via the collision layer) but not shots
+        sol.push(isSolidTile(id) && !isWaterTile(id));
+        wet.push(isWaterTile(id));
       }
       this.tileIds.push(ids);
       this.solid.push(sol);
+      this.wet.push(wet);
     });
     this.mapTW = rows[0].length;
     this.mapTH = rows.length;
@@ -166,8 +180,125 @@ export class GameScene extends Phaser.Scene {
     this.grayLayer = this.grayMap.createLayer(0, tsGray, 0, 0).setDepth(0);
     this.colorLayer = this.colorMap.createLayer(0, tsColor, 0, 0).setDepth(1).setAlpha(0);
     this.grayLayer.setCollision(SOLID);
-    this.night = this.add.rectangle(0, 0, this.mapW, this.mapH, 0x120a2a, 0.38).setOrigin(0).setDepth(2);
+    // light for the time of day: a gloomy tint while locked, a warmer one once freed
+    const sky = this.level.sky || {};
+    const [lc, la] = sky.locked || [0x120a2a, 0.38];
+    const [fc, fa] = sky.freed || [0xffffff, 0];
+    this.skyLockedAlpha = la;
+    this.skyFreedAlpha = fa;
+    this.night = this.add.rectangle(0, 0, this.mapW, this.mapH, lc, la).setOrigin(0).setDepth(2);
+    this.dayTint = this.add.rectangle(0, 0, this.mapW, this.mapH, fc, 0).setOrigin(0).setDepth(2.01);
     this.colorNow = 0;
+    this.placeFacades(rows, theme);
+    // water shimmer: swap each water tile with its second frame
+    if (this.waterCells.length) {
+      let f = 0;
+      this.time.addEvent({ delay: 650, loop: true, callback: () => {
+        f = 1 - f;
+        for (const [x, y, id] of this.waterCells) {
+          this.grayMap.putTileAt(id + f, x, y);
+          this.colorMap.putTileAt(id + f, x, y);
+        }
+      } });
+    }
+  }
+
+  // Ways to calm down: cups of tea that come back after a while, and benches.
+  buildCalm() {
+    this.teas = (this.level.calm || []).map(([tx, ty]) => {
+      const x = tx * TILE + 8;
+      const y = ty * TILE + 10;
+      const img = this.add.image(x, y, 'tea').setDepth(100 + y);
+      const glow = this.add.image(x, y, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(0xffe6a8).setAlpha(0.35).setScale(0.8).setDepth(2.9);
+      this.tweens.add({ targets: img, y: y - 2, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+      return { x, y, img, glow, back: 0 };
+    });
+    this.benchT = 0;
+    this.sitting = false;
+  }
+
+  updateCalm(dt) {
+    const p = this.player;
+    const C = TUNING.calm;
+    for (const t of this.teas) {
+      if (t.back > 0) {
+        t.back -= dt;
+        if (t.back <= 0) {
+          t.img.setVisible(true).setScale(0.2);
+          this.tweens.add({ targets: t.img, scale: 1, duration: 300, ease: 'Back.Out' });
+          t.glow.setVisible(true);
+        }
+        continue;
+      }
+      if (this.meter.value > 4 && Math.hypot(p.x - t.x, p.y - 4 - t.y) < 12) {
+        this.meter.calm(C.pickup);
+        t.back = C.respawn;
+        t.img.setVisible(false);
+        t.glow.setVisible(false);
+        this.fx.heart.explode(3, t.x, t.y - 4);
+        this.popText(p.x, p.y - 34, 'SIP... CALM', '#ffe6a8');
+        Sfx.play('pop');
+      }
+    }
+
+    // stand still next to a bench to sit and breathe
+    const tx = Math.floor(p.x / TILE);
+    const ty = Math.floor((p.y - 4) / TILE);
+    let nearBench = false;
+    for (let dy = -1; dy <= 1 && !nearBench; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (this.tileIds[ty + dy]?.[tx + dx] === T.BENCH) { nearBench = true; break; }
+      }
+    }
+    const still = p.body.velocity.lengthSq() < 4;
+    this.benchT = nearBench && still && !this.ending ? this.benchT + dt : 0;
+    const sitting = this.benchT > C.benchDelay;
+    if (sitting) {
+      this.meter.calm(C.benchRate * dt);
+      if (!this.sitting) this.popText(p.x, p.y - 34, 'BREATHE...', '#bfe8ff');
+      if (Math.random() < dt * 3) this.fx.pollen.explode(1, p.x + Phaser.Math.Between(-8, 8), p.y - 20);
+    }
+    this.sitting = sitting;
+  }
+
+  isWetAt(wx, wy) {
+    const tx = Math.floor(wx / TILE);
+    const ty = Math.floor(wy / TILE);
+    return !!this.wet[ty]?.[tx];
+  }
+
+  // Covers 3-tile-tall wall runs with generated building fronts (4 tiles wide).
+  // A gray copy always shows; the color copy fades in with the rest of the city.
+  placeFacades(rows, theme) {
+    this.facades = [];
+    const variants = [];
+    for (let i = 0; i < 6; i++) if (this.textures.exists(`gen:facades/${theme}_${i}_gray`)) variants.push(i);
+    if (!variants.length) return;
+    const isW = (x, y) => rows[y]?.[x] === 'W';
+    const tall3 = (x, y) => isW(x, y) && isW(x, y + 1) && isW(x, y + 2) && !isW(x, y - 1) && !isW(x, y + 3);
+    let last = -1;
+    for (let y = 0; y < rows.length; y++) {
+      let x = 0;
+      while (x < rows[y].length) {
+        if (!tall3(x, y)) { x++; continue; }
+        let end = x;
+        while (tall3(end, y)) end++;
+        const n = Math.floor((end - x) / 4);
+        let fx = x + Math.floor((end - x - n * 4) / 2);
+        for (let k = 0; k < n; k++, fx += 4) {
+          let v = variants[(fx * 7 + y * 13) % variants.length];
+          if (v === last && variants.length > 1) v = variants[(variants.indexOf(v) + 1) % variants.length];
+          last = v;
+          const px = fx * TILE;
+          const py = y * TILE;
+          this.add.image(px, py, `gen:facades/${theme}_${v}_gray`).setOrigin(0).setDepth(1.1);
+          if (this.textures.exists(`gen:facades/${theme}_${v}_color`)) {
+            this.facades.push(this.add.image(px, py, `gen:facades/${theme}_${v}_color`).setOrigin(0).setDepth(1.2).setAlpha(0));
+          }
+        }
+        x = end;
+      }
+    }
   }
 
   // Props call this to block the tiles they stand on.
@@ -219,6 +350,14 @@ export class GameScene extends Phaser.Scene {
         texture: 'sparkle', freq: 260,
         cfg: { x: { min: 0, max: view.w }, y: { min: 0, max: view.h }, scale: { start: 0, end: 1, ease: 'Sine.InOut', yoyo: true }, lifespan: 800, tint: [0xffffff, 0xff9fd0, 0x9fe8ff], alpha: 0.8 },
       },
+      leaves: {
+        texture: 'leaf', freq: 420,
+        cfg: { x: { min: 0, max: view.w + 40 }, y: { min: -20, max: 0 }, speedX: { min: -30, max: -10 }, speedY: { min: 14, max: 30 }, rotate: { start: 0, end: 360 }, lifespan: 12000, alpha: 0.9 },
+      },
+      gulls: {
+        texture: 'gull', freq: 2600,
+        cfg: { x: { min: -20, max: 0 }, y: { min: 0, max: view.h * 0.6 }, speedX: { min: 30, max: 50 }, speedY: { min: -4, max: 4 }, lifespan: 14000, scale: { min: 0.8, max: 1.2 } },
+      },
       badges: {
         texture: 'badge', freq: 700,
         cfg: { x: { min: 0, max: view.w }, y: view.h, speedY: { min: -25, max: -12 }, lifespan: 9000, alpha: { start: 0.8, end: 0 } },
@@ -264,7 +403,7 @@ export class GameScene extends Phaser.Scene {
       const ty = Math.floor(y / TILE) + Phaser.Math.Between(-radiusTiles, radiusTiles);
       const wx = tx * TILE + 8;
       const wy = ty * TILE + 12;
-      if (!this.isSolidAt(wx, wy)) return { x: wx, y: wy };
+      if (!this.isSolidAt(wx, wy) && !this.isWetAt(wx, wy)) return { x: wx, y: wy };
     }
     return null;
   }
@@ -372,12 +511,31 @@ export class GameScene extends Phaser.Scene {
     return best;
   }
 
+  // Boss fight: the next free spot on the street above the screen (or null when full).
+  claimSideline(npc) {
+    if (!this.sidelineSlots) {
+      this.sidelineSlots = (this.level.sidelines || []).map(([x, y]) => ({ x: x * TILE + 8, y: y * TILE + 14, who: null }));
+    }
+    const slot = this.sidelineSlots.find((sl) => !sl.who || !sl.who.scene);
+    if (slot) slot.who = npc;
+    return slot || null;
+  }
+
+  // Takes a person out of the level for good (they went home).
+  removeNpc(npc) {
+    this.npcs = this.npcs.filter((n) => n !== npc);
+    if (this.talkTarget === npc) this.talkTarget = null;
+    if (npc.flowerKey) this.releaseFlower(npc);
+    for (const o of [npc.shadow, npc.bubble, npc.openTag, npc.phone, npc.glow]) if (o && o.scene) o.destroy();
+    npc.destroy();
+  }
+
   findTalkTarget() {
     const p = this.player;
     let best = null;
     let bd = TUNING.talk.range;
     for (const n of this.npcs) {
-      if (n.state !== 'freed' || n.talking || n.mode === 'celebrate') continue;
+      if (n.state !== 'freed' || n.talking || n.mode === 'celebrate' || n.mode === 'leaving') continue;
       const d = Math.hypot(n.x - p.x, n.y - p.y);
       if (d < bd) { bd = d; best = n; }
     }
@@ -602,6 +760,7 @@ export class GameScene extends Phaser.Scene {
   onBossHurt(cracks) {
     // each crack in the boss's phone brings a bit of the city back
     this.props.forEach((prop, i) => { if (prop.type !== 'eye' && i % 3 === cracks - 1) prop.transform(); });
+    for (const n of this.npcs) if (n.mode === 'crowd') n.cheerT = 1.6;
   }
 
   onBossDefeated(boss) {
@@ -619,6 +778,25 @@ export class GameScene extends Phaser.Scene {
     this.cleared = true;
     this.meter.frozen = true;
     this.npcs.forEach((n) => n.state === 'locked' && n.free());
+    // the crowd comes down from the sidelines to celebrate
+    const fans = this.npcs.filter((n) => n.mode === 'crowd' || n.mode === 'leaving');
+    fans.forEach((n, i) => {
+      const a = (i / Math.max(1, fans.length)) * Math.PI * 2;
+      const r = 52 + (i % 2) * 22;
+      const spot = this.randomWalkableNear(x + Math.cos(a) * r, y + 24 + Math.sin(a) * r * 0.6, 1) || { x, y: y + 30 };
+      this.time.delayedCall(600 + i * 90, () => {
+        if (!n.scene) return;
+        this.tweens.killTweensOf([n, n.shadow]);
+        this.fx.puff.explode(4, n.x, n.y - 10);
+        n.body.enable = true;
+        n.body.reset(spot.x, spot.y);
+        n.setAlpha(1);
+        n.shadow.setAlpha(1);
+        n.mode = 'celebrate';
+        n.modeT = 1.6;
+        this.fx.heart.explode(2, spot.x, spot.y - 26);
+      });
+    });
     this.time.delayedCall(2600, () => this.levelClear());
   }
 
@@ -673,7 +851,7 @@ export class GameScene extends Phaser.Scene {
       }
       for (const n of this.npcs) {
         if (n.state !== 'locked') continue;
-        if (n.kind === 'doom' && n.blocksPebble(pb)) {
+        if (n.blocksPebble && n.blocksPebble(pb)) {
           pb.die('wall');
           n.onBlocked();
           break;
@@ -747,6 +925,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // the Algorithm meter
+    this.updateCalm(dt);
     this.meter.update(dt);
     if (this.meter.full && !this.cleared) this.fail();
 
@@ -754,6 +933,8 @@ export class GameScene extends Phaser.Scene {
     const target = this.level.boss ? (this.bossDefeated ? 1 : (this.boss ? this.boss.cracks : 0) / 3) : this.freedCount / this.total;
     this.colorNow += (target - this.colorNow) * Math.min(1, dt * 2);
     this.colorLayer.setAlpha(this.colorNow);
-    this.night.setAlpha(0.38 * (1 - this.colorNow));
+    for (const f of this.facades) f.setAlpha(this.colorNow);
+    this.night.setAlpha(this.skyLockedAlpha * (1 - this.colorNow));
+    this.dayTint.setAlpha(this.skyFreedAlpha * this.colorNow);
   }
 }

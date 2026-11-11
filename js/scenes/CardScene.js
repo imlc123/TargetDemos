@@ -25,6 +25,14 @@ export class CardScene extends Phaser.Scene {
     const panel = this.add.container(W / 2, H / 2);
     const box = this.add.rectangle(0, 0, 760, 440, 0x1a1428, 0.97).setStrokeStyle(4, accent);
     panel.add(box);
+    // a generated illustration of the place, shown behind the card text
+    if (data.art && this.textures.exists(data.art)) {
+      panel.add(this.add.image(0, 0, data.art).setDisplaySize(752, 432));
+      const shade = this.add.graphics();
+      shade.fillStyle(0x1a1428, 0.55).fillRect(-376, -216, 752, 432);
+      shade.fillStyle(0x1a1428, 0.35).fillRect(-376, -40, 752, 256);
+      panel.add(shade);
+    }
 
     let y = -190;
     if (data.subtitle) {

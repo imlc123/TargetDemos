@@ -202,6 +202,15 @@ export function buildEffectTextures(scene) {
     drawRows(ctx, ['.RRRRR.', 'RRRRRRR', 'RRRRRRR', 'RRRRRRR', 'RRRRRRR', 'RRRRRRR', '.RRRRR.'], { R: '#ff3b4e' });
     drawText(ctx, '!', 2, 1, '#ffffff');
   });
+  canvasTexture(scene, 'opentag', 7, 6, (ctx) => drawRows(ctx, ['GGGGGGG', 'GLLLLLG', '.GLLLG.', '..GLG..', '...G...', '.......'], { G: '#1f7a3a', L: '#5dff8a' }));
+  canvasTexture(scene, 'tea', 9, 11, (ctx) => drawRows(ctx, [
+    '..S...S..', '...S.S...', '..S...S..', '.........', 'OOOOOOO..', 'OCCCCCOOO', 'OCWCCCO.O', 'OCCCCCOOO', '.OCCCO...', '.OOOOO...', 'PPPPPPP..',
+  ], { S: '#ffffff', O: '#6b4428', C: '#f4efe0', W: '#ff8fb0', P: '#c8b8a0' }));
+  canvasTexture(scene, 'leaf', 5, 4, (ctx) => drawRows(ctx, ['..LL.', '.LLLL', 'LLLD.', '.D...'], { L: '#e08a3a', D: '#a8562a' }));
+  canvasTexture(scene, 'gull', 9, 4, (ctx) => drawRows(ctx, ['WW.....WW', '..WW.WW..', '....G....', '.........'], { W: '#ffffff', G: '#c8c8d0' }));
+  canvasTexture(scene, 'replybubble', 9, 7, (ctx) => {
+    drawRows(ctx, ['RRRRRRRRR', 'RWWWWWWWR', 'RWWWWWWWR', 'RRRRRRRRR', '.RR......', '.R.......', '.........'], { R: '#ff3b4e', W: '#ffd0d4' });
+  });
   canvasTexture(scene, 'bubble', 7, 7, (ctx) => {
     drawRows(ctx, ['.BBBBB.', 'BW...BB', 'B.....B', 'B.....B', 'B.....B', 'BB...BB', '.BBBBB.'], { B: '#bfe8ff', W: '#ffffff' });
   });

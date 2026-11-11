@@ -103,6 +103,11 @@ export class IntroScene extends Phaser.Scene {
     this.tweens.add({ targets: this.caption, alpha: 0, delay: hold, duration: 400 });
   }
 
+  // Use the generated version of a panel when it was loaded.
+  pic(key) {
+    return this.textures.exists(`gen:intro/${key}`) ? `gen:intro/${key}` : key;
+  }
+
   at(ms, fn) {
     this.time.delayedCall(ms, () => { if (!this.finished) fn(); });
   }
@@ -110,9 +115,10 @@ export class IntroScene extends Phaser.Scene {
   // Slide a close-up panel in from the side.
   showPanel(key, { feed = false, from = 1, sfx = '' } = {}) {
     this.tweens.killTweensOf(this.panel);
-    this.panelImg.setTexture(key);
+    this.panelImg.setTexture(this.pic(key));
     this.panelImg2.setAlpha(0);
-    this.feed.setVisible(feed);
+    // the scrolling feed overlay only lines up with the code-drawn phone
+    this.feed.setVisible(feed && this.pic(key) === key);
     this.sfxText.setText(sfx).setScale(sfx ? 0.4 : 1);
     if (sfx) this.tweens.add({ targets: this.sfxText, scale: 1, duration: 250, ease: 'Back.Out' });
     const W = this.scale.width;
@@ -121,7 +127,7 @@ export class IntroScene extends Phaser.Scene {
   }
 
   swapPanel(key, sfx) {
-    this.panelImg.setTexture(key);
+    this.panelImg.setTexture(this.pic(key));
     if (sfx !== undefined) {
       this.sfxText.setText(sfx).setScale(0.4);
       this.tweens.add({ targets: this.sfxText, scale: 1, duration: 220, ease: 'Back.Out' });
@@ -196,7 +202,7 @@ export class IntroScene extends Phaser.Scene {
     // close-up: eyes snap open, then the color comes back
     this.at(18300, () => this.showPanel('cu_eyes_wide', { from: 1 }));
     this.at(19300, () => {
-      this.panelImg2.setTexture('cu_eyes_color');
+      this.panelImg2.setTexture(this.pic('cu_eyes_color'));
       this.tweens.add({ targets: this.panelImg2, alpha: 1, duration: 1300 });
       Sfx.play('chord');
     });

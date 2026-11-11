@@ -9,19 +9,25 @@ export class AlgorithmMeter {
     this.invuln = 0;
     this.flash = 0;
     this.frozen = false;
+    this.scale = 1; // the level's difficulty: scales everything that fills the meter
+  }
+
+  // Calming down (tea, benches, chats).
+  calm(amount) {
+    this.value = Math.max(0, this.value - amount);
   }
 
   // Steady drain from auras and cameras. No grace period.
   addContinuous(amount) {
     if (this.frozen) return;
-    this.value = Math.min(this.cfg.max, this.value + amount);
+    this.value = Math.min(this.cfg.max, this.value + amount * this.scale);
     this.sinceRise = 0;
   }
 
   // A single hit. Returns false if still in the grace period.
   hit(amount) {
     if (this.frozen || this.invuln > 0) return false;
-    this.value = Math.min(this.cfg.max, this.value + amount);
+    this.value = Math.min(this.cfg.max, this.value + amount * this.scale);
     this.sinceRise = 0;
     this.invuln = this.cfg.invulnTime;
     this.flash = 0.4;

@@ -1,4 +1,4 @@
-import { CHARACTERS, EXTRA_NAMES, extraLook } from '../data/characters.js';
+import { CHARACTERS, EXTRA_NAMES, extraLook, extraVariant } from '../data/characters.js';
 import { buildCharacter } from '../art/sprites.js';
 import { buildPortrait } from '../art/portraits.js';
 
@@ -9,7 +9,7 @@ export function buildNamedCharacters(scene) {
   for (const [id, c] of Object.entries(CHARACTERS)) {
     const look = { ...c.look, kind: c.kind };
     buildCharacter(scene, `ch_${id}`, look);
-    buildPortrait(scene, `pt_${id}`, look, c.kind, seedOf(id));
+    buildPortrait(scene, `pt_${id}`, look, c.kind, seedOf(id), `gen:portraits/${id}`);
   }
 }
 
@@ -23,10 +23,12 @@ export function personFor(scene, levelIndex, level, npcDef, slot) {
   }
   // An extra person: their own look and name, reusing a conversation of the same kind.
   const seed = levelIndex * 31 + slot * 7 + 3;
-  const look = { ...extraLook(kind, seed), kind };
+  const named = (level.npcs || []).map((n) => n.who).filter(Boolean);
+  const variant = extraVariant(scene, kind, seed, named);
+  const look = { ...(variant ? variant.look : extraLook(kind, seed)), kind };
   const id = `x_${levelIndex}_${slot}`;
   buildCharacter(scene, `ch_${id}`, look);
-  buildPortrait(scene, `pt_${id}`, look, kind, seed);
+  buildPortrait(scene, `pt_${id}`, look, kind, seed, variant && variant.genKey);
   const sameKind = Object.values(CHARACTERS).filter((c) => c.kind === kind);
   const here = level.npcs.map((n) => n.who).filter(Boolean).map((w) => CHARACTERS[w]).filter((c) => c && c.kind === kind);
   const pool = here.length ? here : sameKind;

@@ -82,7 +82,7 @@ export const CHARACTERS = {
       { label: 'Watch the next one?', reply: [['h', 'With my EYES? Okay. Sunset date with myself. No posting.']] },
       { label: 'Freckles look good.', reply: [['h', 'Thanks! They were free. Nothing on my face was free before.']] },
     ],
-    hint: ['n', 'Down in The Scroll, people throw doom headlines. Swat one back right as it reaches you.'],
+    hint: ['n', "Next stop is Reply Row. Everyone there is yelling. Duck out of sight and they start typing to nobody. That's your shot."],
     followup: [
       ['h', "I'm keeping this moment. Inside my head. Wild."],
       ['h', 'I described a sandwich to a friend instead of posting it. Ten out of ten.'],
@@ -100,7 +100,7 @@ export const CHARACTERS = {
       { label: 'Can I have a shirt?', reply: [['h', 'YES. Take a shirt. Take nine. Be a shirt person, {name}.']] },
       { label: 'Sounds fun.', reply: [['h', 'It will be SO fun. No sponsors. Just snacks.']] },
     ],
-    hint: ['n', "Doom-Scrollers have a dark aura that bounces pebbles. Stun them first, then aim for the phone."],
+    hint: ['n', "You can't swat a reply bubble back. Walls, trees and hedges stop them, though. Hide first, then pounce."],
     followup: [
       ['h', 'Shirt swap is Saturday. Bring a neighbor.'],
       ['h', 'I wore the same outfit twice. Nobody died.'],
@@ -118,7 +118,7 @@ export const CHARACTERS = {
       { label: 'Rocks are cool.', reply: [['h', 'Rocks are SO cool. This one looks like a potato. Priceless.']] },
       { label: '$88 is a lot.', reply: [['n', "It was a lot. I'm giving refunds."], ['h', 'And also rocks. Everyone gets a rock.']] },
     ],
-    hint: ['n', 'If the Algorithm meter gets high, step back and breathe. It drains when nothing is hitting you.'],
+    hint: ['n', 'If the Algorithm meter gets high, grab a cup of tea or stand by a bench. Breathe. It drains.'],
     followup: [
       ['h', 'Found a rock shaped like a heart. Not selling it.'],
       ['h', 'Wellness tip: go outside. Free of charge.'],
@@ -138,7 +138,7 @@ export const CHARACTERS = {
       { label: 'Pigeons are news too.', reply: [['h', 'LOCAL PIGEON THRIVING. Best headline I have read in years.']] },
       { label: 'You can stay informed.', reply: [['n', 'Right. Read the news once. Then go live in the world.'], ['h', 'Like a... person.']] },
     ],
-    hint: ['n', 'The Feed is downtown. Biggest screen you have ever seen. Everyone ends up there.'],
+    hint: ['n', 'Past the rain there is a pier. The podcast guys there never stop talking. Except for the ads.'],
     followup: [
       ['h', 'Breaking: I ate breakfast. Sitting down.'],
       ['h', 'The pigeon and I are friends now. His name is Kevin.'],
@@ -236,6 +236,154 @@ export const CHARACTERS = {
       ['h', 'The neighbors smelled the bread. Now we have a bread club.'],
     ],
   },
+
+  // ---------------- Level 3: Reply Row ----------------
+  rex: {
+    name: 'Rex', kind: 'hottake',
+    look: { skin: '#d8a878', hair: '#14100e', hairStyle: 'messy', top: '#24242c', bottom: '#3a3a48', shoes: '#ff3b4e', eyes: '#3a2a1a', extras: ['angry', 'eyebags'] },
+    lines: [
+      ['n', "Huh. I was in the middle of telling a stranger they were wrong about soup."],
+      ['n', "Four hundred replies. I won every argument. I have zero friends."],
+      ['h', "Wait. You knocked my phone out and I didn't even get the last word. That's... freeing?"],
+    ],
+    choice: [
+      { label: 'Who won the soup fight?', reply: [['h', "NOBODY. Soup won. Soup is great. I'm getting soup."]] },
+      { label: 'You can just log off.', reply: [['n', "Log off? With people WRONG out there?"], ['h', "...Yeah. Let them be wrong. I'll be outside."]] },
+    ],
+    hint: ['n', "Next is The Scroll. They throw doom headlines. Swat one right when it reaches you and it flies back as good news."],
+    followup: [
+      ['h', "Someone said pineapple goes on pizza. I said 'cool.' I'm healing."],
+      ['h', 'I wrote a nice comment. On a real wall. It said "nice wall."'],
+    ],
+  },
+  mona: {
+    name: 'Mona', kind: 'hottake',
+    look: { skin: '#f6d1b0', hair: '#c8bca0', hairStyle: 'bob', top: '#d9a63a', bottom: '#5a4a3a', shoes: '#8a2a3a', eyes: '#3a6a5a', extras: ['glasses'] },
+    lines: [
+      ['n', "Well, actually... hm. I don't know what comes after 'well, actually.'"],
+      ['n', "I corrected a man's grammar for nine years. He was a bot. I won, I think."],
+      ['h', "My shoulders just came down from my ears. Is that where they live?"],
+    ],
+    choice: [
+      { label: "You don't have to be right.", reply: [['h', "...Oh. OH. That's the nicest thing anyone's said to me since dial-up."]] },
+      { label: 'Well, actually, hi!', reply: [['h', "Ha! Touche, {name}. Well, actually, hi yourself."]] },
+    ],
+    hint: ['n', "Doom-Scrollers have a dark aura that bounces pebbles. Stun them with their own headline, then aim."],
+    followup: [
+      ['h', "I'm in a book club now. We just say 'ooh' a lot. It's lovely."],
+      ['n', "Someone used 'literally' wrong. I let it go. Like a balloon."],
+    ],
+  },
+  theo: {
+    name: 'Theo', kind: 'hottake',
+    look: { skin: '#9a6440', hair: '#1a1210', hairStyle: 'short', hat: 'beanie', hatColor: '#8a2a3a', top: '#8a6a4a', bottom: '#4a3a2a', shoes: '#5a3a2a', eyes: '#2a1a12', extras: ['glasses', 'stubble'] },
+    lines: [
+      ['n', "I was captain of the debate club. Then the internet made everything a debate."],
+      ['n', "Breakfast? Debate. Weather? Debate. My own mother's birthday? Heated debate."],
+      ['h', "But right now it's just quiet. There's no other side to quiet."],
+    ],
+    choice: [
+      { label: 'Want to just agree?', reply: [['h', "Agreed. Wow. That was easy. Let's do it again sometime."]] },
+      { label: 'Debate me: naps rule.', reply: [['h', "I... concede. Immediately. Naps rule. Motion passed."]] },
+    ],
+    hint: ['n', "When a poster loses sight of you for a second, they type to the void. Green arrow over their head? Fire."],
+    followup: [
+      ['h', 'I started a club where we just listen. Membership: me and a pigeon.'],
+      ['h', 'My mom and I agreed on a pie. Historic.'],
+    ],
+  },
+  pat: {
+    name: 'Uncle Pat', kind: 'hottake',
+    look: { skin: '#f0b494', hair: '#a8a098', hairStyle: 'buzz', top: '#b8333a', bottom: '#3a4a6a', shoes: '#5a3a2a', eyes: '#3a5a7a', extras: ['stubble'] },
+    lines: [
+      ['n', "I used to share stuff in ALL CAPS. Didn't read it. Just shared it."],
+      ['n', "My nephew stopped coming to barbecue. I thought it was the potato salad."],
+      ['h', "It wasn't the potato salad. Kid. I'm gonna call him."],
+    ],
+    choice: [
+      { label: 'Call him today!', reply: [['h', "TODAY! No caps. Just a normal voice. Like a person."]] },
+      { label: "How's the potato salad?", reply: [['h', "Honestly? Elite. That part I'll keep."]] },
+    ],
+    hint: ['n', "Running low on chill? Grab a cup of tea off the street. Or sit on a bench a sec. Works for me."],
+    followup: [
+      ['h', 'My nephew is coming Sunday. Bringing his band. Called The Rest Days?'],
+      ['h', "I forwarded a picture of a sunset. Just the sunset. No caption."],
+    ],
+  },
+
+  // ---------------- Level 5: Podcast Pier ----------------
+  bryce: {
+    name: 'Bryce', kind: 'podcast',
+    look: { skin: '#d8a878', hair: '#3a2412', hairStyle: 'swoop', top: '#1e1e24', bottom: '#3a3a48', shoes: '#f4f4f4', eyes: '#3a5a4a', extras: ['headphones'] },
+    lines: [
+      ['n', "Welcome back to the show. Episode... I lost count. I was the only listener."],
+      ['n', "I explained crypto to the ocean for six hours. It just kept waving."],
+      ['h', "Now I'm talking to you. With no microphone. It's so... small. And nice."],
+    ],
+    choice: [
+      { label: 'I like this show better.', reply: [['h', "Same. Zero sponsors. Infinite vibes. Five stars."]] },
+      { label: 'What IS crypto?', reply: [['n', "...I genuinely do not know, {name}."], ['h', "And I'm free from needing to know! Ha!"]] },
+    ],
+    hint: ['n', "The Feed is downtown. Biggest screen you've ever seen. It pulls people back in. Be ready."],
+    followup: [
+      ['h', "I listened to a friend for a whole hour. Didn't interrupt once. Personal best."],
+      ['h', 'The seagulls are the real podcast. Unscripted. Raw.'],
+    ],
+  },
+  sky: {
+    name: 'Sky', kind: 'podcast',
+    look: { skin: '#6e4630', hair: '#1a1210', hairStyle: 'long', top: '#e8dcc0', bottom: '#a8846a', shoes: '#ffd23f', eyes: '#2a1a12', extras: ['headphones', 'hoops'] },
+    lines: [
+      ['n', "My podcast was about mindfulness. I recorded it while doing four other things."],
+      ['n', "I told a million people to breathe. I forgot to, myself."],
+      ['h', "Okay. In... and out. Oh! That's what that feels like!"],
+    ],
+    choice: [
+      { label: 'Breathe with me?', reply: [['h', "In for four... out for four... we're doing it, {name}! Live! No recording!"]] },
+      { label: 'You were very calm.', reply: [['n', "I was very calm ON MIC."], ['h', "Now I'll try it off mic. The hard mode."]] },
+    ],
+    hint: ['n', "The waves push you back and bounce pebbles. Wait for the AD READ sign. That's when the shield drops."],
+    followup: [
+      ['h', 'I meditated for ten minutes. Nobody knows. That is the point.'],
+      ['h', 'The sea breathes in and out too. We are basically twins.'],
+    ],
+  },
+  gus: {
+    name: 'Gus', kind: 'podcast',
+    look: { skin: '#f0d0b0', hair: '#6b4426', hairStyle: 'short', hat: 'cap', hatColor: '#c8603a', top: '#5a6a3a', bottom: '#4a4a3a', shoes: '#5a3a2a', eyes: '#4a5a3a', extras: ['stubble'] },
+    lines: [
+      ['n', "Birds aren't real. Wait. That one just pooped on me. That's real."],
+      ['n', "I had a theory about everything. The theory was: be scared of everything."],
+      ['h', "The bird thing was a bit much. Birds are cool. Birds are so cool."],
+    ],
+    choice: [
+      { label: 'Birds are real.', reply: [['h', "Birds ARE real! I'm gonna go look at like fifty of them."]] },
+      { label: 'Any new theories?', reply: [['h', "Just one: people are mostly nice. Wild, right? Spread the word."]] },
+    ],
+    hint: ['n', "Free folks walk around and sniff flowers. The Feed hates that. It means the city's waking up."],
+    followup: [
+      ['h', "Saw a pelican. Talked to the pelican. It didn't sell me anything."],
+      ['h', 'New theory: sandwiches taste better at the beach. Confirmed.'],
+    ],
+  },
+  val: {
+    name: 'Val', kind: 'podcast',
+    look: { skin: '#e8b48f', hair: '#2a1a12', hairStyle: 'pony', top: '#3a4a6a', bottom: '#2a2a34', shoes: '#3a3a3a', eyes: '#3a2a1a', extras: ['headphones'] },
+    lines: [
+      ['n', "Four-hour interviews. Every week. I asked everyone everything."],
+      ['n', "I never once asked anyone 'how are you?' Not really."],
+      ['h', "So. {name}. How are you? Really?"],
+    ],
+    choice: [
+      { label: "Honestly? Pretty good.", reply: [['h', "Pretty good! I love that answer. No follow-up needed."]] },
+      { label: 'A little tired.', reply: [['h', "Same. Let's both sit by the water and be tired together."]] },
+    ],
+    hint: ['n', "When The Feed's shield is up, it needs people locked in. Free them and the shield cracks."],
+    followup: [
+      ['h', 'I had a conversation with no microphone. Felt like flying.'],
+      ['h', 'My coffee is still warm. I actually drank it. While it was warm!'],
+    ],
+  },
 };
 
 // The final boss once freed. Their black-pilled form is built in js/art/boss.js.
@@ -268,17 +416,32 @@ export const RELAPSE_LINES = [
 
 // Names for the extra NPCs who reuse a conversation.
 export const EXTRA_NAMES = [
-  'Ava', 'Ben', 'Cleo', 'Dev', 'Eli', 'Fay', 'Gus', 'Hana', 'Ike', 'Jo', 'Kai', 'Lia', 'Mo', 'Nia',
-  'Oz', 'Pia', 'Quin', 'Rae', 'Sol', 'Tia', 'Uma', 'Vic', 'Wes', 'Yara', 'Zed',
+  'Ava', 'Ben', 'Cleo', 'Dev', 'Eli', 'Fay', 'Bo', 'Hana', 'Ike', 'Jo', 'Kai', 'Lia', 'Mo', 'Nia',
+  'Oz', 'Pia', 'Quin', 'Rae', 'Sol', 'Tia', 'Uma', 'Vic', 'Wes', 'Yara', 'Zed', 'Bea', 'Cy', 'Dot', 'Lou',
 ];
 
-const EXTRA_STYLES = {
+export const EXTRA_STYLES = {
   bro: { hairStyles: ['buzz', 'short', 'swoop'], hats: ['capBack', null, 'cap'], tops: ['#1fbfa5', '#ff8a3d', '#e8433f', '#3f7fe8'], bottoms: ['#4a4a5a', '#3a3a48'] },
   influencer: { hairStyles: ['long', 'bob', 'bun'], hats: [null], tops: ['#ff7eb6', '#7ee0ff', '#c9b0ff', '#ffd23f'], bottoms: ['#a98bff', '#ffb36b', '#e8d8b0'] },
   doom: { hairStyles: ['messy', 'short', 'curly'], hats: ['hood', null, 'beanie'], tops: ['#6a7a4a', '#7a4ab8', '#2a3a6a', '#2a8a8a'], bottoms: ['#4a4a5a', '#3a3a3a'] },
+  hottake: { hairStyles: ['messy', 'short', 'bob'], hats: [null, 'beanie', 'cap'], tops: ['#2a2a34', '#8a2a3a', '#3a3a5a', '#5a2a2a'], bottoms: ['#3a3a48', '#4a3a3a'] },
+  podcast: { hairStyles: ['swoop', 'pony', 'short'], hats: [null, 'beanie'], tops: ['#e8dcc0', '#2a2a2a', '#4a6a8a', '#8a6a4a'], bottoms: ['#3a3a48', '#5a4a3a'] },
 };
-const SKINS = ['#f6d1b0', '#e8b48f', '#c68b5e', '#9a6440', '#6e4630', '#4a2e20'];
-const HAIRS = ['#1a1210', '#3a2412', '#6b4426', '#c0602a', '#f3d36b', '#8a7a6a'];
+export const SKINS = ['#f6d1b0', '#e8b48f', '#c68b5e', '#9a6440', '#6e4630', '#4a2e20'];
+export const HAIRS = ['#1a1210', '#3a2412', '#6b4426', '#c0602a', '#f3d36b', '#8a7a6a'];
+
+// A remixed Gemini portrait for an extra person, with the sprite look that matches it.
+// Variants of characters who already appear in this level are used last.
+// Returns null when the remix data isn't loaded (the code-drawn portrait is used then).
+export function extraVariant(scene, kind, seed, avoid = []) {
+  const all = scene.cache.json.get('extraPortraits')?.[kind] || [];
+  const usable = all.filter((v) => scene.textures.exists(`gen:${v.file}`));
+  if (!usable.length) return null;
+  const fresh = usable.filter((v) => !avoid.includes(v.base));
+  const pool = fresh.length >= 2 ? fresh : usable;
+  const v = pool[seed % pool.length];
+  return { look: { ...v.look }, genKey: `gen:${v.file}` };
+}
 
 // A deterministic extra person for a level slot.
 export function extraLook(kind, seed) {
@@ -290,6 +453,7 @@ export function extraLook(kind, seed) {
     skin: pick(SKINS, 0), hair: pick(HAIRS, 1), hairStyle: pick(st.hairStyles, 3), hat,
     hatColor: pick(['#27408b', '#8b2740', '#2a3a6a', '#3a6a4a'], 4), top: pick(st.tops, 5), bottom: pick(st.bottoms, 6),
     shoes: pick(['#f4f4f4', '#3a3a3a', '#ffd23f'], 7), eyes: '#3a2a1a',
-    extras: kind === 'bro' && r(8) % 2 ? ['chain'] : kind === 'influencer' && r(8) % 2 ? ['hoops'] : [],
+    extras: kind === 'bro' && r(8) % 2 ? ['chain'] : kind === 'influencer' && r(8) % 2 ? ['hoops']
+      : kind === 'hottake' ? (r(8) % 2 ? ['angry'] : ['glasses']) : kind === 'podcast' ? ['headphones'] : [],
   };
 }

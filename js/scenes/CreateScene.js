@@ -2,7 +2,7 @@ import { FONT } from '../config.js';
 import { Hero, cleanName, randomName } from '../systems/Hero.js';
 import { Sfx } from '../systems/Sfx.js';
 import { buildHero, heroKey, heroLook, HERO_SKINS, HERO_COLORS } from '../art/sprites.js';
-import { buildPortrait } from '../art/portraits.js';
+import { buildPortrait, heroGenKey } from '../art/portraits.js';
 import { makeButton } from '../ui/button.js';
 
 const GENDERS = [['boy', 'BOY'], ['girl', 'GIRL'], ['nb', 'NONBINARY']];
@@ -125,7 +125,7 @@ export class CreateScene extends Phaser.Scene {
     const p = this.profile;
     const key = heroKey(p);
     buildHero(this, p);
-    buildPortrait(this, `pt_${key}`, heroLook(p), 'hero', 7);
+    buildPortrait(this, `pt_${key}`, heroLook(p), 'hero', 7, heroGenKey(p));
     this.sprite.setTexture(`${key}_color`, this.sprite.frame?.name?.includes('_walk') ? this.sprite.frame.name : 'down_walk0');
     this.portrait.setTexture(`pt_${key}`, 'h');
     this.nameLabel.setText((p.name || '...').toUpperCase());

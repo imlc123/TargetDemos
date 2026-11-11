@@ -48,7 +48,7 @@ export class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     const save = Save.load();
-    if (DEBUG) save.unlocked = 4;
+    if (DEBUG) save.unlocked = LEVELS.length;
     const next = this.nextLevel(save);
     const hasHero = Hero.exists();
     const label = !hasHero ? 'PLAY' : save.cleared.some(Boolean) ? 'CONTINUE' : 'PLAY';
@@ -81,15 +81,15 @@ export class MenuScene extends Phaser.Scene {
     kb.on('keydown-SPACE', () => (this.levelPanel.visible ? null : this.play(next)));
     kb.on('keydown-ESC', () => this.showLevels(false));
     kb.on('keydown-M', () => this.toggleMute());
-    for (let i = 0; i < 4; i++) {
-      kb.on(`keydown-${['ONE', 'TWO', 'THREE', 'FOUR'][i]}`, () => {
+    for (let i = 0; i < LEVELS.length; i++) {
+      kb.on(`keydown-${['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX'][i]}`, () => {
         if (i < Save.load().unlocked || DEBUG) this.startLevel(i);
       });
     }
   }
 
   nextLevel(save) {
-    for (let i = 0; i < 4; i++) if (!save.cleared[i] && i < save.unlocked) return i;
+    for (let i = 0; i < LEVELS.length; i++) if (!save.cleared[i] && i < save.unlocked) return i;
     return 0;
   }
 
@@ -108,6 +108,14 @@ export class MenuScene extends Phaser.Scene {
   }
 
   drawCity(W, H) {
+    if (this.textures.exists('gen:ui/title_city')) {
+      this.add.image(0, 0, 'gen:ui/title_city').setOrigin(0).setDisplaySize(W, H);
+      // darken the sky behind the title and the street behind the buttons' hints
+      const shade = this.add.graphics();
+      shade.fillGradientStyle(0x0d0b16, 0x0d0b16, 0x0d0b16, 0x0d0b16, 0.85, 0.85, 0, 0).fillRect(0, 0, W, 300);
+      shade.fillStyle(0x0d0b16, 0.55).fillRect(0, H - 40, W, 40);
+      return;
+    }
     const g = this.add.graphics();
     const bands = [0x0d0b16, 0x120d22, 0x18102c, 0x1f1236];
     bands.forEach((c, i) => g.fillStyle(c).fillRect(0, i * 60, W, 60));
@@ -159,20 +167,20 @@ export class MenuScene extends Phaser.Scene {
   buildLevelPanel(W, H, save) {
     const panel = this.add.container(0, 0).setVisible(false).setDepth(10);
     const shade = this.add.rectangle(0, 0, W, H, 0x07050d, 0.85).setOrigin(0).setInteractive();
-    const box = this.add.rectangle(W / 2, H / 2, 720, 400, 0x1a1428).setStrokeStyle(4, 0x3fe8ff);
-    const title = this.add.text(W / 2, H / 2 - 160, 'CHOOSE A BLOCK', { fontFamily: FONT, fontSize: '20px', color: '#3fe8ff' }).setOrigin(0.5);
+    const box = this.add.rectangle(W / 2, H / 2, 720, 460, 0x1a1428).setStrokeStyle(4, 0x3fe8ff);
+    const title = this.add.text(W / 2, H / 2 - 190, 'CHOOSE A BLOCK', { fontFamily: FONT, fontSize: '20px', color: '#3fe8ff' }).setOrigin(0.5);
     panel.add([shade, box, title]);
     LEVELS.forEach((lv, i) => {
       const unlocked = DEBUG || i < save.unlocked;
       const col = i % 2;
       const row = Math.floor(i / 2);
       const bx = W / 2 - 170 + col * 340;
-      const by = H / 2 - 70 + row * 100;
+      const by = H / 2 - 112 + row * 86;
       const tick = save.cleared[i] ? '  *' : '';
       const label = unlocked ? `${i + 1}. ${lv.name.toUpperCase()}${tick}` : `${i + 1}. LOCKED`;
-      panel.add(makeButton(this, bx, by, label, () => this.startLevel(i), { w: 310, h: 70, size: 11, enabled: unlocked }));
+      panel.add(makeButton(this, bx, by, label, () => this.startLevel(i), { w: 310, h: 64, size: 11, enabled: unlocked }));
     });
-    panel.add(makeButton(this, W / 2, H / 2 + 150, 'BACK', () => this.showLevels(false), { w: 180, h: 44, size: 12, color: 0x8a5cff }));
+    panel.add(makeButton(this, W / 2, H / 2 + 180, 'BACK', () => this.showLevels(false), { w: 180, h: 44, size: 12, color: 0x8a5cff }));
     this.levelPanel = panel;
   }
 

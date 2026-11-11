@@ -333,7 +333,27 @@ export const PROP_TYPES = {
 };
 
 // Text pairs are part of the texture key so each sign gets its own texture.
+// Props drawn by the Gemini art generator (assets/img/props/<id>_l.png and _f.png).
+// They stand on the ground and block the tiles under their base.
+const GEN_PROPS = {
+  fountain: [32, 32], foodtruck: [48, 32], vending: [16, 32], soapbox: [32, 32], ferris: [64, 64],
+  lifeguard: [32, 32], micstand: [16, 32], statue: [32, 32], flowercart: [32, 32], arcade: [16, 32],
+  telescope: [16, 32], deckchairs: [32, 16], canalboat: [32, 16], bikerack: [32, 16],
+};
+for (const [id, [w, h]] of Object.entries(GEN_PROPS)) {
+  PROP_TYPES[id] = { w, h, place: id === 'canalboat' ? 'floor' : 'ground', foot: w / 16, gen: id, draw() {} };
+}
+
+// False for a generated prop whose image is missing (the level then leaves it out).
+export function propAvailable(scene, type) {
+  const spec = PROP_TYPES[type];
+  if (!spec) return false;
+  return !spec.gen || scene.textures.exists(propTextureKey(type, null, false));
+}
+
 export function propTextureKey(type, text, freed) {
+  const gen = PROP_TYPES[type]?.gen;
+  if (gen) return `gen:props/${gen}_${freed ? 'f' : 'l'}`;
   const t = text ? text.join('|').replace(/[^A-Za-z0-9]/g, '') : '';
   return `prop_${type}_${t}_${freed ? 'f' : 'l'}`;
 }
@@ -342,6 +362,7 @@ export function buildPropTextures(scene, type, text, color) {
   const spec = PROP_TYPES[type];
   const w = spec.width ? spec.width(text) : spec.w;
   const h = spec.h;
+  if (spec.gen) return { w, h };
   for (const freed of [false, true]) {
     const key = propTextureKey(type, text, freed);
     canvasTexture(scene, key, w, h, (ctx) => {

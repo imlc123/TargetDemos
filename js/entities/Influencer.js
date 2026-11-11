@@ -82,7 +82,7 @@ export class Influencer extends NPC {
       s.meter.addContinuous(C.filmRate * dt);
       this.filmT += dt;
       if (Math.random() < dt * 4) Sfx.play('rec');
-      if (this.filmT >= C.contentifyTime) this.contentify();
+      if (this.filmT >= C.contentifyTime / (s.diff || 1)) this.contentify();
     } else {
       this.filmT = Math.max(0, this.filmT - dt);
     }

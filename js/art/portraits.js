@@ -11,6 +11,8 @@ const BACKDROPS = {
   bro: { bg: '#284a78', ring: '#35609a', fx: '#4a7ac0' },
   influencer: { bg: '#b8508a', ring: '#d27aa6', fx: '#ffffff' },
   doom: { bg: '#3d2f5e', ring: '#52427a', fx: '#6a5a9a' },
+  hottake: { bg: '#5e2a34', ring: '#7a3a44', fx: '#ff6b7a' },
+  podcast: { bg: '#2a4a5e', ring: '#3a6278', fx: '#9fe8ff' },
   hero: { bg: '#2f6a48', ring: '#3f8a5c', fx: '#ffe28a' },
 };
 
@@ -92,6 +94,20 @@ function backdrop(p, kind, seed) {
       const y = 4 + (hash2(seed, i) % 40);
       p.set(x, y, b.fx, 'bg'); p.set(x - 1, y, lighten(b.ring, 0.4), 'bg'); p.set(x + 1, y, lighten(b.ring, 0.4), 'bg');
       p.set(x, y - 1, lighten(b.ring, 0.4), 'bg'); p.set(x, y + 1, lighten(b.ring, 0.4), 'bg');
+    }
+  } else if (kind === 'hottake') {
+    // little reply bubbles
+    for (let i = 0; i < 5; i++) {
+      const x = 4 + (hash2(i, seed) % 52);
+      const y = 4 + (hash2(seed, i * 5) % 36);
+      p.rect(x, y, 6, 3, b.fx, 'bg'); p.set(x + 1, y + 3, b.fx, 'bg');
+    }
+  } else if (kind === 'podcast') {
+    // sound waves
+    for (let r = 0; r < 3; r++) {
+      for (let a = -0.9; a <= 0.9; a += 0.08) {
+        p.set(Math.round(32 + Math.cos(a - Math.PI / 2) * (24 + r * 5)), Math.round(30 + Math.sin(a - Math.PI / 2) * (24 + r * 5)), b.fx, 'bg');
+      }
     }
   } else if (kind === 'doom') {
     for (let i = 0; i < 14; i++) {
@@ -419,6 +435,10 @@ function extras(p, look) {
   }
 }
 
+export function heroGenKey(profile) {
+  return `gen:portraits/hero_${profile.gender}_${profile.skin}_${profile.cap}`;
+}
+
 export function paintPortrait(ctx, look, expr, kind, seed = 1, ox = 0) {
   const p = new Painter();
   backdrop(p, kind, seed);
@@ -435,11 +455,23 @@ export function paintPortrait(ctx, look, expr, kind, seed = 1, ox = 0) {
 }
 
 // Builds `${key}` with frames 'n' and 'h'.
-export function buildPortrait(scene, key, look, kind, seed = 1) {
+// If a Gemini-generated portrait (genKey) was loaded, it is drawn over the
+// character's backdrop; otherwise the portrait is painted from the look.
+export function buildPortrait(scene, key, look, kind, seed = 1, genKey = null) {
   if (scene.textures.exists(key)) return key;
+  const gen = genKey && scene.textures.exists(genKey) ? scene.textures.get(genKey).getSourceImage() : null;
   const tex = canvasTexture(scene, key, S * 2, S, (ctx) => {
-    paintPortrait(ctx, look, 'n', kind, seed, 0);
-    paintPortrait(ctx, look, 'h', kind, seed, S);
+    if (gen) {
+      for (const ox of [0, S]) {
+        const p = new Painter();
+        backdrop(p, kind, seed);
+        p.flush(ctx, ox);
+      }
+      ctx.drawImage(gen, 0, 0);
+    } else {
+      paintPortrait(ctx, look, 'n', kind, seed, 0);
+      paintPortrait(ctx, look, 'h', kind, seed, S);
+    }
   });
   tex.add('n', 0, 0, 0, S, S);
   tex.add('h', 0, S, 0, S, S);

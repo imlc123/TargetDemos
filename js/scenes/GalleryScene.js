@@ -1,7 +1,7 @@
 import { FONT } from '../config.js';
 import { CHARACTERS } from '../data/characters.js';
 import { FRAMES, buildHero, heroKey, HERO_GENDERS } from '../art/sprites.js';
-import { buildPortrait } from '../art/portraits.js';
+import { buildPortrait, heroGenKey } from '../art/portraits.js';
 import { heroLook } from '../art/sprites.js';
 import { PROP_TYPES, buildPropTextures, propTextureKey } from '../art/props.js';
 import { TILE_COUNT } from '../art/tiles.js';
@@ -16,7 +16,7 @@ export class GalleryScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#2a2438');
     this.page = this.add.container(0, 0);
     const kb = this.input.keyboard;
-    ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'].forEach((k, i) => kb.on(`keydown-${k}`, () => this.show(i)));
+    ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN'].forEach((k, i) => kb.on(`keydown-${k}`, () => this.show(i)));
     this.show(0);
     window.__gallery = this;
   }
@@ -27,12 +27,14 @@ export class GalleryScene extends Phaser.Scene {
 
   show(i) {
     this.page.removeAll(true);
-    this.label(10, 6, `GALLERY PAGE ${i + 1}  (keys 1-5: sprites, portraits, props, tiles, zoom)`);
+    this.label(10, 6, `GALLERY PAGE ${i + 1}  (keys 1-7: sprites, portraits, props, tiles, zoom, generated, generated big)`);
     if (i === 0) this.sprites();
     if (i === 1) this.portraits();
     if (i === 2) this.props();
     if (i === 3) this.tiles();
     if (i === 4) this.zoom();
+    if (i === 5) this.generated(['portraits/', 'facades/', 'props/']);
+    if (i === 6) this.generated(['intro/', 'cards/', 'ui/']);
   }
 
   sprites() {
@@ -55,6 +57,26 @@ export class GalleryScene extends Phaser.Scene {
     }
     this.page.add(this.add.image(hx, hy, `${heroKey({ gender: 'boy', skin: 0, cap: 0 })}_gray`, 'down_idle0').setOrigin(0).setScale(2));
     ['held', 'drawn', 'release'].forEach((f, j) => this.page.add(this.add.image(hx + 48 + j * 30, hy, 'slingshot', f).setOrigin(0).setScale(3)));
+  }
+
+  // Every Gemini-generated image whose folder matches, packed in rows.
+  generated(folders) {
+    const keys = this.textures.getTextureKeys().filter((k) => k.startsWith('gen:') && folders.some((f) => k.startsWith(`gen:${f}`))).sort();
+    const big = folders.includes('intro/');
+    let x = 6;
+    let y = 22;
+    let rowH = 0;
+    for (const k of keys) {
+      const src = this.textures.get(k).getSourceImage();
+      const sc = big ? (src.width > 300 ? 0.5 : 1) : 1;
+      const w = src.width * sc;
+      const h = src.height * sc;
+      if (x + w > 954) { x = 6; y += rowH + 4; rowH = 0; }
+      this.page.add(this.add.image(x, y, k).setOrigin(0).setScale(sc));
+      x += w + 4;
+      rowH = Math.max(rowH, h);
+    }
+    this.label(700, 6 + 520, `${keys.length} images`);
   }
 
   zoom() {
@@ -83,7 +105,7 @@ export class GalleryScene extends Phaser.Scene {
       for (let s = 0; s < 4; s += 3) {
         const p = { gender: g, skin: s, cap: s };
         const k = `pt_${heroKey(p)}`;
-        buildPortrait(this, k, heroLook(p), 'hero', 7);
+        buildPortrait(this, k, heroLook(p), 'hero', 7, heroGenKey(p));
         const x = 10 + n * 158;
         this.page.add(this.add.image(x, 300, k, 'n').setOrigin(0));
         this.page.add(this.add.image(x + 68, 300, k, 'h').setOrigin(0));
