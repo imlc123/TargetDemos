@@ -3,9 +3,9 @@
 // Two expressions: 'n' (neutral) and 'h' (happy).
 
 import { shade, lighten, mix, canvasTexture, hash2 } from './pixels.js';
+import { ramp } from './sprites.js';
 
 const S = 64;
-const OUTLINE = '#1b1424';
 
 const BACKDROPS = {
   bro: { bg: '#284a78', ring: '#35609a', fx: '#4a7ac0' },
@@ -51,13 +51,17 @@ class Painter {
       if (c && test(x, y, c)) this.fig[y * S + x] = fn(c, x, y);
     }
   }
+  // Outline in a darker shade of whatever it wraps (Stardew style), not flat black.
   outline() {
     const add = [];
     for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
       if (this.fig[y * S + x]) continue;
-      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => this.get(x + dx, y + dy))) add.push([x, y]);
+      for (const [dx, dy] of [[0, 1], [1, 0], [-1, 0], [0, -1]]) {
+        const c = this.get(x + dx, y + dy);
+        if (c) { add.push([x, y, ramp(c).ol]); break; }
+      }
     }
-    add.forEach(([x, y]) => this.set(x, y, OUTLINE));
+    add.forEach(([x, y, c]) => this.set(x, y, c));
   }
   flush(ctx, ox = 0) {
     for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {

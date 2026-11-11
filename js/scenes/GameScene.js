@@ -2,7 +2,6 @@ import { TILE, TUNING, VIEW, FONT, DEBUG } from '../config.js';
 import { LEVELS, normalizeMap } from '../data/levels.js';
 import { LINES, pick } from '../data/lines.js';
 import { T, SOLID, tileIdFor, isSolidTile } from '../art/tiles.js';
-import { PHONE_AT } from '../art/sprites.js';
 import { Player } from '../entities/Player.js';
 import { Pebble } from '../entities/Pebble.js';
 import { Headline } from '../entities/Headline.js';
@@ -376,7 +375,7 @@ export class GameScene extends Phaser.Scene {
       if (near.length) {
         near.forEach((h) => h.reflect());
         p.parryCd = TUNING.parry.cooldown;
-        p.swing();
+        p.aim(near[0].x - p.cx, near[0].y - p.cy);
         Sfx.play('parry');
         this.popText(p.x, p.y - 34, 'DEFLECT!', '#ffe066');
         this.cameras.main.shake(80, 0.002);
@@ -398,9 +397,9 @@ export class GameScene extends Phaser.Scene {
       dx = (t.cx - p.cx) / d;
       dy = (t.cy - p.cy) / d;
     }
-    this.pebbles.push(new Pebble(this, p.cx + dx * 6, p.cy + dy * 6, dx, dy));
+    this.pebbles.push(new Pebble(this, p.cx + dx * 9, p.cy + dy * 9, dx, dy));
     p.shootCd = TUNING.pebble.cooldown;
-    p.swing();
+    p.aim(dx, dy);
     Sfx.play('shoot');
   }
 
@@ -507,9 +506,7 @@ export class GameScene extends Phaser.Scene {
     p.onboard();
     p.setVelocity(0, 0);
     p.stun = 99;
-    const [hx, hy] = PHONE_AT.phone;
-    const fx = p.x - 12 + (p.flipX ? 23 - hx : hx) + 0.5;
-    const fy = p.y - 32 + hy + 0.5;
+    const { x: fx, y: fy } = p.phonePos();
     this.add.rectangle(fx, fy, 3, 5, 0xff3fb4).setStrokeStyle(1, 0x15151c).setDepth(p.depth + 1);
     this.add.image(fx, fy, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(0xff3fb4).setDepth(p.depth + 1).setScale(0.6);
     this.headlines.forEach((h) => h.die());

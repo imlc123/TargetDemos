@@ -10,6 +10,7 @@ const RAYS = 14;
 export class Influencer extends NPC {
   constructor(scene, x, y, person) {
     super(scene, x, y, 'influencer', person);
+    this.lockFacing = true;
     const C = TUNING.influencer;
     this.facing = (Math.floor(Math.random() * 8) * Math.PI) / 4;
     this.targetFacing = this.facing;
@@ -51,7 +52,7 @@ export class Influencer extends NPC {
       if (this.poseT <= 0) this.nextPose();
     }
     this.facing = Phaser.Math.Angle.RotateTo(this.facing, this.targetFacing, 4.5 * dt);
-    this.setFlipX(Math.cos(this.facing) < -0.1);
+    this.faceDir(Math.cos(this.facing), Math.sin(this.facing));
 
     // camera cone (rays stop at walls, hedges, trees)
     const ex = this.x;

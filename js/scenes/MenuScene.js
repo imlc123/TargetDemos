@@ -25,15 +25,15 @@ export class MenuScene extends Phaser.Scene {
     this.crowd = [];
     const xs = [96, 196, 296, 664, 764, 864];
     CROWD.forEach((id, i) => {
-      const spr = this.add.image(xs[i], 444, `ch_${id}_gray`, 'idle0').setOrigin(0.5, 1).setScale(3);
+      const spr = this.add.image(xs[i], 444, `ch_${id}_gray`, 'down_idle0').setOrigin(0.5, 1).setScale(3);
       const glow = this.add.image(xs[i] + 8, 396, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(0x7fd1ff).setAlpha(0.5).setScale(1.8);
-      this.time.addEvent({ delay: 450 + i * 40, loop: true, callback: () => spr.setFrame(spr.frame.name === 'idle0' ? 'idle1' : 'idle0') });
+      this.time.addEvent({ delay: 450 + i * 40, loop: true, callback: () => spr.setFrame(spr.frame.name === 'down_idle0' ? 'down_idle1' : 'down_idle0') });
       this.crowd.push({ spr, glow, id, freed: false });
     });
     const profile = Hero.get();
     buildHero(this, profile);
-    this.hero = this.add.image(W / 2, 444, `${heroKey(profile)}_color`, 'idle0').setOrigin(0.5, 1).setScale(3);
-    this.time.addEvent({ delay: 500, loop: true, callback: () => this.hero.setFrame(this.hero.frame.name === 'idle0' ? 'idle1' : 'idle0') });
+    this.hero = this.add.image(W / 2, 444, `${heroKey(profile)}_color`, 'down_idle0').setOrigin(0.5, 1).setScale(3);
+    this.time.addEvent({ delay: 500, loop: true, callback: () => this.hero.setFrame(this.hero.frame.name === 'down_idle0' ? 'down_idle1' : 'down_idle0') });
     this.hearts = this.add.particles(0, 0, 'heart', {
       speed: { min: 20, max: 60 }, angle: { min: 240, max: 300 }, lifespan: 1000,
       scale: { start: 2, end: 0 }, emitting: false,
@@ -142,7 +142,7 @@ export class MenuScene extends Phaser.Scene {
       this.time.delayedCall(1200, () => {
         this.crowd.forEach((c) => {
           c.freed = false;
-          c.spr.setTexture(`ch_${c.id}_gray`, 'idle0');
+          c.spr.setTexture(`ch_${c.id}_gray`, 'down_idle0');
           c.glow.setVisible(true);
         });
       });
@@ -151,7 +151,7 @@ export class MenuScene extends Phaser.Scene {
     const c = Phaser.Utils.Array.GetRandom(locked);
     c.freed = true;
     c.spr.setTexture(`ch_${c.id}_color`, 'cheer');
-    this.time.delayedCall(700, () => c.freed && c.spr.setFrame('idle0'));
+    this.time.delayedCall(700, () => c.freed && c.spr.setFrame('down_idle0'));
     c.glow.setVisible(false);
     this.hearts.explode(4, c.spr.x, c.spr.y - 90);
   }

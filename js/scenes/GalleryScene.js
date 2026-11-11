@@ -16,7 +16,7 @@ export class GalleryScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#2a2438');
     this.page = this.add.container(0, 0);
     const kb = this.input.keyboard;
-    ['ONE', 'TWO', 'THREE', 'FOUR'].forEach((k, i) => kb.on(`keydown-${k}`, () => this.show(i)));
+    ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'].forEach((k, i) => kb.on(`keydown-${k}`, () => this.show(i)));
     this.show(0);
     window.__gallery = this;
   }
@@ -27,36 +27,46 @@ export class GalleryScene extends Phaser.Scene {
 
   show(i) {
     this.page.removeAll(true);
-    this.label(10, 6, `GALLERY PAGE ${i + 1}  (keys 1-4: sprites, portraits, props, tiles)`);
+    this.label(10, 6, `GALLERY PAGE ${i + 1}  (keys 1-5: sprites, portraits, props, tiles, zoom)`);
     if (i === 0) this.sprites();
     if (i === 1) this.portraits();
     if (i === 2) this.props();
     if (i === 3) this.tiles();
+    if (i === 4) this.zoom();
   }
 
   sprites() {
     const ids = Object.keys(CHARACTERS);
     ids.forEach((id, n) => {
-      const x = 10 + (n % 2) * 470;
-      const y = 24 + Math.floor(n / 2) * 72;
-      this.label(x, y, CHARACTERS[id].name);
-      FRAMES.forEach((f, j) => {
-        this.page.add(this.add.image(x + j * 28, y + 10, `ch_${id}_color`, f).setOrigin(0).setScale(1));
-        this.page.add(this.add.image(x + 240 + j * 28, y + 10, `ch_${id}_gray`, f).setOrigin(0).setScale(1));
-      });
-      this.page.add(this.add.image(x, y + 44, `ch_${id}_color`, 'idle0').setOrigin(0, 0.5).setScale(1).setVisible(false));
+      const y = 22 + n * 34;
+      this.label(4, y + 12, CHARACTERS[id].name.slice(0, 6));
+      FRAMES.forEach((f, j) => this.page.add(this.add.image(60 + j * 25, y, `ch_${id}_color`, f).setOrigin(0)));
+      ['down_idle0', 'side_walk0', 'up_idle0', 'down_walk1'].forEach((f, j) => this.page.add(this.add.image(650 + j * 25, y, `ch_${id}_gray`, f).setOrigin(0)));
     });
-    // heroes
-    let hx = 10;
+    let hx = 760;
+    let hy = 22;
     for (const g of Object.keys(HERO_GENDERS)) {
-      for (let s = 0; s < 4; s++) {
+      for (let s = 0; s < 4; s += 3) {
         const p = { gender: g, skin: s, cap: s };
         buildHero(this, p);
-        this.page.add(this.add.image(hx, 470, `${heroKey(p)}_color`, 'idle0').setOrigin(0).setScale(2));
-        hx += 52;
+        ['down_idle0', 'side_walk0', 'up_idle0', 'side_aim'].forEach((f, j) => this.page.add(this.add.image(hx + j * 48, hy, `${heroKey(p)}_color`, f).setOrigin(0).setScale(2)));
+        hy += 68;
       }
     }
-    this.page.add(this.add.image(hx + 10, 470, `${heroKey({ gender: 'boy', skin: 0, cap: 0 })}_gray`, 'idle0').setOrigin(0).setScale(2));
+    this.page.add(this.add.image(hx, hy, `${heroKey({ gender: 'boy', skin: 0, cap: 0 })}_gray`, 'down_idle0').setOrigin(0).setScale(2));
+    ['held', 'drawn', 'release'].forEach((f, j) => this.page.add(this.add.image(hx + 48 + j * 30, hy, 'slingshot', f).setOrigin(0).setScale(3)));
+  }
+
+  zoom() {
+    const show = [['ch_chad', 'color'], ['ch_brooke', 'color'], ['ch_ray', 'color'], ['ch_brooke', 'gray']];
+    show.forEach(([k, v], r) => {
+      ['down_idle0', 'down_walk1', 'side_idle0', 'side_walk0', 'side_walk2', 'up_idle0', 'wave'].forEach((f, j) => {
+        this.page.add(this.add.image(10 + j * 78, 22 + r * 128, `${k}_${v}`, f).setOrigin(0).setScale(3.5));
+      });
+    });
+    const p = { gender: 'girl', skin: 2, cap: 1 };
+    buildHero(this, p);
+    ['down_idle0', 'side_walk0', 'up_idle0', 'side_aim'].forEach((f, j) => this.page.add(this.add.image(570 + j * 92, 22 + 384, `${heroKey(p)}_color`, f).setOrigin(0).setScale(3.5)));
   }
 
   portraits() {

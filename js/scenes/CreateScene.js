@@ -47,7 +47,13 @@ export class CreateScene extends Phaser.Scene {
     this.nameLabel = this.add.text(288, 330, '', { fontFamily: FONT, fontSize: '16px', color: '#ffffff' }).setOrigin(0.5);
     this.pronounLabel = this.add.text(288, 362, '', { fontFamily: FONT, fontSize: '10px', color: '#cdbfff' }).setOrigin(0.5);
     let walk = 0;
-    this.time.addEvent({ delay: 130, loop: true, callback: () => { walk = (walk + 1) % 4; this.sprite.setFrame(`walk${walk}`); } });
+    const views = ['down', 'side', 'up', 'side'];
+    this.time.addEvent({ delay: 130, loop: true, callback: () => {
+      walk = (walk + 1) % 32;
+      const view = views[Math.floor(walk / 8)];
+      this.sprite.setFlipX(Math.floor(walk / 8) === 3);
+      this.sprite.setFrame(`${view}_walk${walk % 4}`);
+    } });
 
     // name
     const lx = 440;
@@ -120,7 +126,7 @@ export class CreateScene extends Phaser.Scene {
     const key = heroKey(p);
     buildHero(this, p);
     buildPortrait(this, `pt_${key}`, heroLook(p), 'hero', 7);
-    this.sprite.setTexture(`${key}_color`, this.sprite.frame?.name?.startsWith('walk') ? this.sprite.frame.name : 'walk0');
+    this.sprite.setTexture(`${key}_color`, this.sprite.frame?.name?.includes('_walk') ? this.sprite.frame.name : 'down_walk0');
     this.portrait.setTexture(`pt_${key}`, 'h');
     this.nameLabel.setText((p.name || '...').toUpperCase());
     const pro = { boy: 'HE / HIM', girl: 'SHE / HER', nb: 'THEY / THEM' }[p.gender];

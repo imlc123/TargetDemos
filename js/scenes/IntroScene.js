@@ -45,8 +45,8 @@ export class IntroScene extends Phaser.Scene {
     this.lying.setDepth(4);
     this.dark.setDepth(3);
     this.sling = add(this.add.image(P(WINDOW.x + 30), P(WINDOW.y + 20), 'intro_sling').setScale(S).setVisible(false).setDepth(7));
-    this.heroA = add(this.add.image(P(130), P(122), 'intro_hero_a_gray', 'idle0').setOrigin(0.5, 1).setScale(S).setVisible(false).setDepth(6));
-    this.heroColor = add(this.add.image(P(130), P(122), 'intro_hero_a_color', 'idle0').setOrigin(0.5, 1).setScale(S).setAlpha(0).setDepth(6));
+    this.heroA = add(this.add.image(P(130), P(122), 'intro_hero_a_gray', 'down_idle0').setOrigin(0.5, 1).setScale(S).setVisible(false).setDepth(6));
+    this.heroColor = add(this.add.image(P(130), P(122), 'intro_hero_a_color', 'down_idle0').setOrigin(0.5, 1).setScale(S).setAlpha(0).setDepth(6));
     this.shards = add(this.add.particles(0, 0, 'shard', {
       speed: { min: 150, max: 420 }, angle: { min: 120, max: 240 }, gravityY: 900, lifespan: 1200, scale: { start: 2.5, end: 1 },
       tint: [0xe8f6ff, 0xbfe8ff, 0xffffff], emitting: false,
@@ -182,7 +182,7 @@ export class IntroScene extends Phaser.Scene {
         this.heroColor.setTexture('intro_hero_b_color', 'wave');
         Sfx.play('freed');
         this.sparkles.explode(14, this.heroColor.x, this.heroColor.y - P(24));
-        this.time.delayedCall(500, () => this.heroColor.setFrame('idle0'));
+        this.time.delayedCall(500, () => this.heroColor.setFrame('down_idle0'));
       });
       this.heroA.setVisible(false);
     });
@@ -212,11 +212,11 @@ export class IntroScene extends Phaser.Scene {
 
   walk(obj, toX, dur, done) {
     let f = 0;
-    const ev = this.time.addEvent({ delay: 120, loop: true, callback: () => { f = (f + 1) % 4; obj.setFrame(`walk${f}`); } });
+    const ev = this.time.addEvent({ delay: 120, loop: true, callback: () => { f = (f + 1) % 4; obj.setFrame(`side_walk${f}`); } });
     obj.setFlipX(toX < obj.x);
     this.tweens.add({
       targets: obj, x: toX, duration: dur, ease: 'Linear',
-      onComplete: () => { ev.remove(); obj.setFrame('idle0'); if (done) done(); },
+      onComplete: () => { ev.remove(); obj.setFlipX(false); obj.setFrame('down_idle0'); if (done) done(); },
     });
   }
 
