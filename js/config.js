@@ -66,6 +66,25 @@ export const TUNING = {
   freed: {
     speed: 30,
   },
+  boss: {
+    need: [3, 3, 3], // people to free before the shield drops, per phase
+    regrowNeed: 2, // if the shield comes back, free this many more
+    spawnEvery: [7, 6, 5], // seconds between extra summons while shielded
+    maxLocked: [3, 4, 4], // most people the boss keeps in the feed at once
+    openTime: 10, // seconds the shield stays down
+    dip: { up: [2.2, 3], warn: 0.7, dip: 2 },
+    candleEvery: 3.6,
+    candleDamage: 12,
+    beamRange: 170,
+    beamHalf: 16, // degrees
+    beamSpeed: 0.55, // radians per second
+    filmRate: 12,
+    auraRadius: 64,
+    auraRate: 10,
+    barrageEvery: 3.4,
+    barrageCount: [3, 4], // headlines per barrage: shielded, open
+    stunTime: 4,
+  },
   talk: {
     range: 28, // how close you must be to talk to someone
     calm: 25, // the meter drops this much after your first chat with each person

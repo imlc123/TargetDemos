@@ -3,6 +3,7 @@ import { Hero } from '../systems/Hero.js';
 import { Sfx } from '../systems/Sfx.js';
 import { buildPortrait } from '../art/portraits.js';
 import { heroLook, heroKey } from '../art/sprites.js';
+import { RELAPSE_LINES } from '../data/characters.js';
 
 const BROWN = 0x5a3a1a;
 const BROWN2 = 0x8a5a2b;
@@ -29,7 +30,10 @@ export class DialogueScene extends Phaser.Scene {
 
     // the script
     this.steps = [];
-    if (this.first) {
+    if (this.first && data.relapse) {
+      const pair = Phaser.Utils.Array.Shuffle(RELAPSE_LINES.slice()).slice(0, 2);
+      pair.forEach(([f, t]) => this.steps.push({ face: f, text: t }));
+    } else if (this.first) {
       c.lines.forEach(([f, t]) => this.steps.push({ face: f, text: t }));
       this.steps.push({ choice: c.choice });
       if (c.hint) this.steps.push({ face: c.hint[0], text: c.hint[1] });

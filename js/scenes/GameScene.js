@@ -6,11 +6,14 @@ import { Player } from '../entities/Player.js';
 import { Pebble } from '../entities/Pebble.js';
 import { Headline } from '../entities/Headline.js';
 import { Prop } from '../entities/Prop.js';
+import { Boss } from '../entities/Boss.js';
 import { GrindsetBro } from '../entities/GrindsetBro.js';
 import { Influencer } from '../entities/Influencer.js';
 import { DoomScroller } from '../entities/DoomScroller.js';
 import { AlgorithmMeter } from '../systems/AlgorithmMeter.js';
 import { personFor } from '../systems/People.js';
+import { NPC } from '../entities/NPC.js';
+import { CHARACTERS } from '../data/characters.js';
 import { Save } from '../systems/Save.js';
 import { Sfx } from '../systems/Sfx.js';
 
@@ -25,6 +28,7 @@ export class GameScene extends Phaser.Scene {
     this.levelIndex = Phaser.Math.Clamp(data.level ?? 0, 0, LEVELS.length - 1);
     this.level = LEVELS[this.levelIndex];
     this.skipIntro = !!data.skipIntro;
+    this.bossPhase = data.bossPhase || 0;
   }
 
   create() {
@@ -61,6 +65,17 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.npcs, this.grayLayer);
     this.total = this.npcs.length;
     this.freedCount = 0;
+    this.extraSlot = 100;
+
+    // the final boss
+    this.boss = null;
+    if (this.level.boss) {
+      const [bx, by] = this.level.boss.at;
+      this.boss = new Boss(this, bx * TILE + 8, by * TILE + 14, this.bossPhase);
+      this.physics.add.collider(this.player, this.boss);
+      this.physics.add.collider(this.boss, this.grayLayer);
+      this.boss.begin(this.bossPhase === 0);
+    }
 
     // each prop changes when the nearest person is freed
     for (const prop of this.props) {
@@ -92,7 +107,7 @@ export class GameScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, this.mapW, this.mapH);
 
     // input
-    this.keys = this.input.keyboard.addKeys('ESC,P,N,K');
+    this.keys = this.input.keyboard.addKeys('ESC,P,N,K,B');
     this.events.on('resume', () => {
       this.input.keyboard.resetKeys();
       const t = this.registry.get('touch');
@@ -112,6 +127,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   featuredTex() {
+    if (this.level.boss) return 'boss';
     const n = this.npcs.find((x) => x.kind === this.level.feature) || this.npcs[0];
     return n ? n.person.tex : null;
   }
@@ -337,7 +353,8 @@ export class GameScene extends Phaser.Scene {
     const range = TUNING.pebble.range + 6;
     let best = null;
     let bestScore = Infinity;
-    for (const n of this.npcs) {
+    const targets = this.boss && this.boss.state === 'locked' && this.boss.mode !== 'intro' ? [...this.npcs, this.boss] : this.npcs;
+    for (const n of targets) {
       if (n.state !== 'locked') continue;
       const dx = n.cx - p.cx;
       const dy = n.cy - p.cy;
@@ -409,7 +426,7 @@ export class GameScene extends Phaser.Scene {
     this.player.setVelocity(0, 0);
     this.talkTag.setVisible(false);
     Sfx.play('pop');
-    this.scene.launch('Dialogue', { npc, person: npc.person, first: !npc.talked });
+    this.scene.launch('Dialogue', { npc, person: npc.person, first: !npc.talked, relapse: !!npc.relapse });
     this.scene.bringToTop('Dialogue');
     this.scene.pause();
   }
@@ -431,6 +448,10 @@ export class GameScene extends Phaser.Scene {
   onNpcFreed(npc) {
     this.freedCount++;
     for (const prop of this.props) if (prop.link === npc) prop.transform();
+    if (this.boss) {
+      this.boss.onMinionFreed(npc);
+      return;
+    }
     if (this.ambient) {
       const left = 1 - this.freedCount / this.total;
       if (left <= 0) {
@@ -510,11 +531,13 @@ export class GameScene extends Phaser.Scene {
     this.add.rectangle(fx, fy, 3, 5, 0xff3fb4).setStrokeStyle(1, 0x15151c).setDepth(p.depth + 1);
     this.add.image(fx, fy, 'glow').setBlendMode(Phaser.BlendModes.ADD).setTint(0xff3fb4).setDepth(p.depth + 1).setScale(0.6);
     this.headlines.forEach((h) => h.die());
+    if (this.boss) this.boss.mode = 'intro';
     Sfx.play('onboard');
     this.cameras.main.flash(250, 255, 63, 180);
     this.time.delayedCall(900, () =>
       this.showCard({
-        kind: 'fail', title: "YOU'VE BEEN ONBOARDED", body: pick(LINES.fail), icon: 'fail',
+        kind: 'fail', title: "YOU'VE BEEN ONBOARDED",
+        body: this.boss ? `${pick(LINES.fail)}\n\nYou'll restart at PHASE ${this.boss.phase + 1}.` : pick(LINES.fail), icon: 'fail',
         buttons: [{ label: 'TRY AGAIN', action: 'restart' }, { label: 'MENU', action: 'menu' }],
       }),
     );
@@ -528,7 +551,7 @@ export class GameScene extends Phaser.Scene {
 
   handleCardAction(action) {
     if (action === 'resume') this.scene.resume();
-    else if (action === 'restart') this.scene.restart({ level: this.levelIndex, skipIntro: true });
+    else if (action === 'restart') this.scene.restart({ level: this.levelIndex, skipIntro: true, bossPhase: this.boss ? Math.min(2, this.boss.phase) : 0 });
     else if (action === 'next') this.scene.restart({ level: this.levelIndex + 1 });
     else if (action === 'stay') {
       this.freeRoam = true;
@@ -550,6 +573,55 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  // ---------- the boss fight ----------
+  // The boss pulls someone back into the feed: a person you freed before, or a stranger.
+  spawnMinion(type, who) {
+    if (this.ending) return;
+    const p = this.player;
+    const pts = (this.level.spawnPoints || []).map(([x, y]) => ({ x: x * TILE + 8, y: y * TILE + 14 }))
+      .filter((pt) => Math.hypot(pt.x - p.x, pt.y - p.y) > 70);
+    const pt = pts.length ? Phaser.Utils.Array.GetRandom(pts) : { x: this.boss.x + 60, y: this.boss.y + 40 };
+    const slot = this.extraSlot++;
+    const person = personFor(this, this.levelIndex, { npcs: [] }, { type, who }, slot);
+    const npc = new NPC_CLASSES[type](this, pt.x, pt.y, person);
+    npc.relapse = !!who;
+    this.physics.add.collider(npc, this.grayLayer);
+    this.npcs.push(npc);
+    npc.setAlpha(0);
+    this.tweens.add({ targets: npc, alpha: 1, duration: 500 });
+    // a dark tendril from the boss to the person
+    const b = this.boss;
+    for (let i = 0; i <= 8; i++) {
+      const t = i / 8;
+      this.time.delayedCall(i * 30, () => this.fx.puff.explode(1, b.x + (pt.x - b.x) * t, b.y - 30 + (pt.y - 14 - (b.y - 30)) * t));
+    }
+    npc.say(pick(LINES.relapse), 2.2);
+    Sfx.play('fire');
+  }
+
+  onBossHurt(cracks) {
+    // each crack in the boss's phone brings a bit of the city back
+    this.props.forEach((prop, i) => { if (prop.type !== 'eye' && i % 3 === cracks - 1) prop.transform(); });
+  }
+
+  onBossDefeated(boss) {
+    const x = boss.x;
+    const y = boss.y;
+    boss.destroyAll();
+    this.boss = null;
+    this.bossDefeated = true;
+    // Dale, just a person again
+    const person = { id: 'dale', name: 'Dale', kind: 'doom', convo: CHARACTERS.dale, tex: 'ch_dale', portrait: 'pt_dale' };
+    const dale = new NPC(this, x, y, 'doom', person);
+    this.physics.add.collider(dale, this.grayLayer);
+    this.npcs.push(dale);
+    dale.free();
+    this.cleared = true;
+    this.meter.frozen = true;
+    this.npcs.forEach((n) => n.state === 'locked' && n.free());
+    this.time.delayedCall(2600, () => this.levelClear());
+  }
+
   // ---------- main loop ----------
   update(time, delta) {
     const dt = Math.min(delta / 1000, 0.05);
@@ -562,6 +634,10 @@ export class GameScene extends Phaser.Scene {
     if (DEBUG) {
       if (JD(this.keys.N)) this.npcs.forEach((n) => n.free());
       if (JD(this.keys.K)) this.meter.value = this.meter.cfg.max;
+      if (JD(this.keys.B) && this.boss) {
+        if (this.boss.mode === 'shielded') this.boss.openShield();
+        else if (this.boss.mode === 'open') this.boss.hurt();
+      }
     }
 
     const p = this.player;
@@ -574,6 +650,7 @@ export class GameScene extends Phaser.Scene {
     if (this.inDialogue) return;
 
     for (const n of this.npcs) n.update(dt);
+    if (this.boss) this.boss.update(dt);
     for (const prop of this.props) prop.update(dt);
 
     // pebbles
@@ -581,6 +658,19 @@ export class GameScene extends Phaser.Scene {
     for (const pb of this.pebbles) {
       pb.update(dt);
       if (pb.dead) continue;
+      const b = this.boss;
+      if (b && b.state === 'locked') {
+        if (b.blocksPebble(pb)) {
+          pb.die('wall');
+          b.onBlocked();
+          continue;
+        }
+        if (Math.hypot(pb.x - b.cx, pb.y - b.cy) < b.hitRadius) {
+          pb.die('hit');
+          b.onPebble(pb);
+          continue;
+        }
+      }
       for (const n of this.npcs) {
         if (n.state !== 'locked') continue;
         if (n.kind === 'doom' && n.blocksPebble(pb)) {
@@ -609,7 +699,7 @@ export class GameScene extends Phaser.Scene {
           if (this.hurt(TUNING.doom.headlinePenalty)) this.popText(p.x, p.y - 34, 'DOOMED!', '#ff6b81');
           h.die();
         }
-      } else if (h.target && h.target.state === 'locked' && Math.hypot(h.x - h.target.cx, h.y - h.target.cy) < 12) {
+      } else if (h.target && h.target.state === 'locked' && Math.hypot(h.x - h.target.cx, h.y - h.target.cy) < (h.target.hitRadius || 12)) {
         h.target.onReflectHit();
         h.die();
       }
@@ -623,6 +713,12 @@ export class GameScene extends Phaser.Scene {
       if (n.kind !== 'influencer' || n.state !== 'locked' || n.cone.length < 3) continue;
       this.coneGfx.fillStyle(n.filming ? 0xff5fa2 : 0xffd6ec, n.filming ? 0.34 : 0.2);
       this.coneGfx.fillPoints(n.cone, true);
+    }
+    if (this.boss) {
+      for (const cone of this.boss.cones) {
+        this.coneGfx.fillStyle(this.boss.filming ? 0xff5fa2 : 0xffd6ec, this.boss.filming ? 0.36 : 0.22);
+        this.coneGfx.fillPoints(cone, true);
+      }
     }
 
     // aim marker and talk tag
@@ -655,7 +751,7 @@ export class GameScene extends Phaser.Scene {
     if (this.meter.full && !this.cleared) this.fail();
 
     // the city gets its color back
-    const target = this.freedCount / this.total;
+    const target = this.level.boss ? (this.bossDefeated ? 1 : (this.boss ? this.boss.cracks : 0) / 3) : this.freedCount / this.total;
     this.colorNow += (target - this.colorNow) * Math.min(1, dt * 2);
     this.colorLayer.setAlpha(this.colorNow);
     this.night.setAlpha(0.38 * (1 - this.colorNow));

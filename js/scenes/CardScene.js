@@ -81,8 +81,12 @@ export class CardScene extends Phaser.Scene {
       add(`${k}_color`, 'down_idle0', -60);
       arrow('#ff3fb4');
       add(`${k}_gray`, 'down_idle0', 60);
+    } else if (icon === 'boss') {
+      c.add(this.add.image(-60, 34, 'ch_boss_gray', 'down_idle0').setOrigin(0.5, 1).setScale(2.5));
+      arrow('#ffe066');
+      add('ch_dale_color', 'cheer', 60);
     } else if (icon === 'all') {
-      ['gordon', 'luna', 'nell'].forEach((id, i) => add(`ch_${id}_color`, i === 1 ? 'wave' : 'cheer', -80 + i * 80));
+      ['chad', 'dale', 'brooke'].forEach((id, i) => add(`ch_${id}_color`, i === 1 ? 'wave' : 'cheer', -80 + i * 80));
     } else {
       add(`${icon}_gray`, 'down_idle0', -60);
       arrow('#ffe066');

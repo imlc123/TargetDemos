@@ -238,6 +238,34 @@ export const CHARACTERS = {
   },
 };
 
+// The final boss once freed. Their black-pilled form is built in js/art/boss.js.
+CHARACTERS.dale = {
+  name: 'Dale', kind: 'doom',
+  look: { skin: '#d8b49a', hair: '#3a2a22', hairStyle: 'messy', top: '#7a8ab8', bottom: '#4a4a5a', shoes: '#c08a55', eyes: '#4a6a8a', extras: ['eyebags', 'stubble'] },
+  lines: [
+    ['n', 'I was the feed. Or the feed was me. Hard to tell after year nine.'],
+    ['n', 'Every ad, every rage post, every "you won\'t believe"... it all ran through my thumbs.'],
+    ['h', 'And you just... hit my phone with a rock. Three times.'],
+  ],
+  choice: [
+    { label: 'Want to go outside?', reply: [['h', 'Yeah. Yeah, I really do. Is it always this bright?']] },
+    { label: 'You okay, Dale?', reply: [['n', 'No. But I think I could be. That\'s new.'], ['h', 'Thanks for asking, {name}. Nobody asks.']] },
+  ],
+  hint: ['h', 'Go see your friends, {name}. They\'re all out there. Touching grass. Literally.'],
+  followup: [
+    ['h', 'I named a pigeon. It ignored me. Perfect relationship.'],
+    ['h', 'Turns out a sunset has no comment section.'],
+  ],
+};
+
+// What freed people say when the boss pulls them back in and you free them again.
+export const RELAPSE_LINES = [
+  ['h', 'Whoa. It pulled me right back in. Thanks for getting me out. Again!'],
+  ['n', 'One notification. That\'s all it took. One.'],
+  ['h', 'Okay, I owe you two favors now, {name}.'],
+  ['n', 'The big one is feeding on all of us. Free everyone and its shield breaks!'],
+];
+
 // Names for the extra NPCs who reuse a conversation.
 export const EXTRA_NAMES = [
   'Ava', 'Ben', 'Cleo', 'Dev', 'Eli', 'Fay', 'Gus', 'Hana', 'Ike', 'Jo', 'Kai', 'Lia', 'Mo', 'Nia',

@@ -611,7 +611,7 @@ export const HAND_AT = {
 export function buildCharacter(scene, key, look) {
   const kind = KINDS[look.kind] || KINDS.hero;
   const color = lookPalette(look);
-  const gray = grayPalette(color, { eye: '#8fe9ff', white: '#e8f6ff', lens: '#ff3fb4' });
+  const gray = grayPalette(color, { eye: look.glowEyes || '#8fe9ff', white: '#e8f6ff', lens: '#ff3fb4' });
   gray.blush = gray.skin;
   const variants = [
     ['color', color, kind.free],
