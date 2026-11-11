@@ -420,15 +420,28 @@ export const EXTRA_NAMES = [
   'Oz', 'Pia', 'Quin', 'Rae', 'Sol', 'Tia', 'Uma', 'Vic', 'Wes', 'Yara', 'Zed', 'Bea', 'Cy', 'Dot', 'Lou',
 ];
 
-const EXTRA_STYLES = {
+export const EXTRA_STYLES = {
   bro: { hairStyles: ['buzz', 'short', 'swoop'], hats: ['capBack', null, 'cap'], tops: ['#1fbfa5', '#ff8a3d', '#e8433f', '#3f7fe8'], bottoms: ['#4a4a5a', '#3a3a48'] },
   influencer: { hairStyles: ['long', 'bob', 'bun'], hats: [null], tops: ['#ff7eb6', '#7ee0ff', '#c9b0ff', '#ffd23f'], bottoms: ['#a98bff', '#ffb36b', '#e8d8b0'] },
   doom: { hairStyles: ['messy', 'short', 'curly'], hats: ['hood', null, 'beanie'], tops: ['#6a7a4a', '#7a4ab8', '#2a3a6a', '#2a8a8a'], bottoms: ['#4a4a5a', '#3a3a3a'] },
   hottake: { hairStyles: ['messy', 'short', 'bob'], hats: [null, 'beanie', 'cap'], tops: ['#2a2a34', '#8a2a3a', '#3a3a5a', '#5a2a2a'], bottoms: ['#3a3a48', '#4a3a3a'] },
   podcast: { hairStyles: ['swoop', 'pony', 'short'], hats: [null, 'beanie'], tops: ['#e8dcc0', '#2a2a2a', '#4a6a8a', '#8a6a4a'], bottoms: ['#3a3a48', '#5a4a3a'] },
 };
-const SKINS = ['#f6d1b0', '#e8b48f', '#c68b5e', '#9a6440', '#6e4630', '#4a2e20'];
-const HAIRS = ['#1a1210', '#3a2412', '#6b4426', '#c0602a', '#f3d36b', '#8a7a6a'];
+export const SKINS = ['#f6d1b0', '#e8b48f', '#c68b5e', '#9a6440', '#6e4630', '#4a2e20'];
+export const HAIRS = ['#1a1210', '#3a2412', '#6b4426', '#c0602a', '#f3d36b', '#8a7a6a'];
+
+// A remixed Gemini portrait for an extra person, with the sprite look that matches it.
+// Variants of characters who already appear in this level are used last.
+// Returns null when the remix data isn't loaded (the code-drawn portrait is used then).
+export function extraVariant(scene, kind, seed, avoid = []) {
+  const all = scene.cache.json.get('extraPortraits')?.[kind] || [];
+  const usable = all.filter((v) => scene.textures.exists(`gen:${v.file}`));
+  if (!usable.length) return null;
+  const fresh = usable.filter((v) => !avoid.includes(v.base));
+  const pool = fresh.length >= 2 ? fresh : usable;
+  const v = pool[seed % pool.length];
+  return { look: { ...v.look }, genKey: `gen:${v.file}` };
+}
 
 // A deterministic extra person for a level slot.
 export function extraLook(kind, seed) {

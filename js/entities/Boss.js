@@ -103,7 +103,7 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
     s.cameras.main.flash(200, 255, 63, 180);
     // the first wave: the people you freed, pulled back in
     const wave = s.level.waves[this.phase];
-    const first = this.need + 1;
+    const first = this.need;
     for (let i = 0; i < first; i++) {
       const [type, who] = wave.who[i % wave.who.length];
       s.time.delayedCall(400 + i * 450, () => s.spawnMinion(type, who));

@@ -1,0 +1,690 @@
+{
+ "bro": [
+  {
+   "file": "portraits/extra_bro_0",
+   "base": "chad",
+   "look": {
+    "skin": "#f0c4a0",
+    "hair": "#3a2412",
+    "hairStyle": "buzz",
+    "hat": "capBack",
+    "hatColor": "#c8603a",
+    "top": "#3f7fe8",
+    "bottom": "#4a4a5a",
+    "shoes": "#f4f4f4",
+    "eyes": "#3a6a9a",
+    "extras": [
+     "chain",
+     "stubble"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_bro_1",
+   "base": "chad",
+   "look": {
+    "skin": "#f0c4a0",
+    "hair": "#c0602a",
+    "hairStyle": "buzz",
+    "hat": "capBack",
+    "hatColor": "#3a6a4a",
+    "top": "#ff8a3d",
+    "bottom": "#4a4a5a",
+    "shoes": "#f4f4f4",
+    "eyes": "#3a6a9a",
+    "extras": [
+     "chain",
+     "stubble"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_bro_2",
+   "base": "marcus",
+   "look": {
+    "skin": "#8d5a3b",
+    "hair": "#1a1210",
+    "hairStyle": "swoop",
+    "top": "#1fbfa5",
+    "bottom": "#3a3a48",
+    "shoes": "#ffd23f",
+    "eyes": "#3a2a1a",
+    "extras": [
+     "glasses"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_bro_3",
+   "base": "marcus",
+   "look": {
+    "skin": "#8d5a3b",
+    "hair": "#1a1210",
+    "hairStyle": "swoop",
+    "top": "#3f7fe8",
+    "bottom": "#3a3a48",
+    "shoes": "#ffd23f",
+    "eyes": "#3a2a1a",
+    "extras": [
+     "glasses"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_bro_4",
+   "base": "tyler",
+   "look": {
+    "skin": "#5a3826",
+    "hair": "#120c0a",
+    "hairStyle": "short",
+    "hat": "capBack",
+    "hatColor": "#8b2740",
+    "top": "#3a3a4a",
+    "bottom": "#6a6a7a",
+    "shoes": "#ffffff",
+    "eyes": "#2a1a12",
+    "extras": [
+     "earbuds"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_bro_5",
+   "base": "tyler",
+   "look": {
+    "skin": "#5a3826",
+    "hair": "#120c0a",
+    "hairStyle": "short",
+    "hat": "capBack",
+    "hatColor": "#5a3a7a",
+    "top": "#3a3a4a",
+    "bottom": "#6a6a7a",
+    "shoes": "#ffffff",
+    "eyes": "#2a1a12",
+    "extras": [
+     "earbuds"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_bro_6",
+   "base": "gordon",
+   "look": {
+    "skin": "#f2b89a",
+    "hair": "#6b4426",
+    "hairStyle": "swoop",
+    "top": "#e8433f",
+    "bottom": "#2a3a5a",
+    "shoes": "#f4f4f4",
+    "eyes": "#3a6a3a",
+    "extras": [
+     "chain",
+     "freckles"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_bro_7",
+   "base": "gordon",
+   "look": {
+    "skin": "#f2b89a",
+    "hair": "#8a7a6a",
+    "hairStyle": "swoop",
+    "top": "#ff8a3d",
+    "bottom": "#2a3a5a",
+    "shoes": "#f4f4f4",
+    "eyes": "#3a6a3a",
+    "extras": [
+     "chain",
+     "freckles"
+    ]
+   }
+  }
+ ],
+ "influencer": [
+  {
+   "file": "portraits/extra_influencer_0",
+   "base": "brooke",
+   "look": {
+    "skin": "#f6d1b0",
+    "hair": "#c0602a",
+    "hairStyle": "long",
+    "top": "#ffd23f",
+    "bottom": "#a98bff",
+    "shoes": "#5a3a5a",
+    "eyes": "#3a8a9a",
+    "extras": [
+     "hoops",
+     "shades",
+     "freckles"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_influencer_1",
+   "base": "brooke",
+   "look": {
+    "skin": "#f6d1b0",
+    "hair": "#c0602a",
+    "hairStyle": "long",
+    "top": "#7ee0ff",
+    "bottom": "#a98bff",
+    "shoes": "#5a3a5a",
+    "eyes": "#3a8a9a",
+    "extras": [
+     "hoops",
+     "shades",
+     "freckles"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_influencer_2",
+   "base": "jade",
+   "look": {
+    "skin": "#e8b48f",
+    "hair": "#16121a",
+    "hairStyle": "bob",
+    "top": "#ffd23f",
+    "bottom": "#ffb36b",
+    "shoes": "#ffffff",
+    "eyes": "#3a2a1a",
+    "extras": [
+     "hoops"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_influencer_3",
+   "base": "jade",
+   "look": {
+    "skin": "#e8b48f",
+    "hair": "#16121a",
+    "hairStyle": "bob",
+    "top": "#c9b0ff",
+    "bottom": "#ffb36b",
+    "shoes": "#ffffff",
+    "eyes": "#3a2a1a",
+    "extras": [
+     "hoops"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_influencer_4",
+   "base": "sage",
+   "look": {
+    "skin": "#a8714c",
+    "hair": "#2a1a14",
+    "hairStyle": "bun",
+    "top": "#7ee0ff",
+    "bottom": "#e8d8b0",
+    "shoes": "#8a6a4a",
+    "eyes": "#4a6a3a",
+    "extras": []
+   }
+  },
+  {
+   "file": "portraits/extra_influencer_5",
+   "base": "sage",
+   "look": {
+    "skin": "#a8714c",
+    "hair": "#2a1a14",
+    "hairStyle": "bun",
+    "top": "#ff7eb6",
+    "bottom": "#e8d8b0",
+    "shoes": "#8a6a4a",
+    "eyes": "#4a6a3a",
+    "extras": []
+   }
+  },
+  {
+   "file": "portraits/extra_influencer_6",
+   "base": "luna",
+   "look": {
+    "skin": "#6e4630",
+    "hair": "#8a7a6a",
+    "hairStyle": "long",
+    "top": "#ff7eb6",
+    "bottom": "#4a6ad8",
+    "shoes": "#ffffff",
+    "eyes": "#3a2010",
+    "extras": [
+     "shades",
+     "hoops"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_influencer_7",
+   "base": "luna",
+   "look": {
+    "skin": "#6e4630",
+    "hair": "#8a7a6a",
+    "hairStyle": "long",
+    "top": "#c9b0ff",
+    "bottom": "#4a6ad8",
+    "shoes": "#ffffff",
+    "eyes": "#3a2010",
+    "extras": [
+     "shades",
+     "hoops"
+    ]
+   }
+  }
+ ],
+ "doom": [
+  {
+   "file": "portraits/extra_doom_0",
+   "base": "doug",
+   "look": {
+    "skin": "#e8c4a8",
+    "hair": "#8a7a6a",
+    "hairStyle": "messy",
+    "top": "#2a8a8a",
+    "bottom": "#4a4a5a",
+    "shoes": "#3a3a3a",
+    "eyes": "#5a5a3a",
+    "extras": [
+     "glasses",
+     "eyebags"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_doom_1",
+   "base": "doug",
+   "look": {
+    "skin": "#e8c4a8",
+    "hair": "#8a7a6a",
+    "hairStyle": "messy",
+    "top": "#2a3a6a",
+    "bottom": "#4a4a5a",
+    "shoes": "#3a3a3a",
+    "eyes": "#5a5a3a",
+    "extras": [
+     "glasses",
+     "eyebags"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_doom_2",
+   "base": "priya",
+   "look": {
+    "skin": "#9a6440",
+    "hair": "#1a1010",
+    "hairStyle": "long",
+    "top": "#6a7a4a",
+    "bottom": "#3a3a4a",
+    "shoes": "#e8e8e8",
+    "eyes": "#3a2010",
+    "extras": [
+     "headphones"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_doom_3",
+   "base": "priya",
+   "look": {
+    "skin": "#9a6440",
+    "hair": "#1a1010",
+    "hairStyle": "long",
+    "top": "#2a8a8a",
+    "bottom": "#3a3a4a",
+    "shoes": "#e8e8e8",
+    "eyes": "#3a2010",
+    "extras": [
+     "headphones"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_doom_4",
+   "base": "ray",
+   "look": {
+    "skin": "#4a2e20",
+    "hair": "#0e0a08",
+    "hairStyle": "short",
+    "hat": "hood",
+    "hatColor": "#2a8a8a",
+    "top": "#2a8a8a",
+    "bottom": "#3a3a3a",
+    "shoes": "#c0392b",
+    "eyes": "#2a1a10",
+    "extras": [
+     "eyebags"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_doom_5",
+   "base": "ray",
+   "look": {
+    "skin": "#4a2e20",
+    "hair": "#0e0a08",
+    "hairStyle": "short",
+    "hat": "hood",
+    "hatColor": "#7a4ab8",
+    "top": "#7a4ab8",
+    "bottom": "#3a3a3a",
+    "shoes": "#c0392b",
+    "eyes": "#2a1a10",
+    "extras": [
+     "eyebags"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_doom_6",
+   "base": "nell",
+   "look": {
+    "skin": "#c68b5e",
+    "hair": "#6b4426",
+    "hairStyle": "curly",
+    "hat": "beanie",
+    "hatColor": "#3a6a4a",
+    "top": "#6a7a4a",
+    "bottom": "#4a4a5a",
+    "shoes": "#ffd23f",
+    "eyes": "#3a2a10",
+    "extras": [
+     "freckles"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_doom_7",
+   "base": "nell",
+   "look": {
+    "skin": "#c68b5e",
+    "hair": "#6b4426",
+    "hairStyle": "curly",
+    "hat": "beanie",
+    "hatColor": "#8b2740",
+    "top": "#2a3a6a",
+    "bottom": "#4a4a5a",
+    "shoes": "#ffd23f",
+    "eyes": "#3a2a10",
+    "extras": [
+     "freckles"
+    ]
+   }
+  }
+ ],
+ "hottake": [
+  {
+   "file": "portraits/extra_hottake_0",
+   "base": "rex",
+   "look": {
+    "skin": "#d8a878",
+    "hair": "#14100e",
+    "hairStyle": "messy",
+    "top": "#8a2a3a",
+    "bottom": "#3a3a48",
+    "shoes": "#ff3b4e",
+    "eyes": "#3a2a1a",
+    "extras": [
+     "angry",
+     "eyebags"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_hottake_1",
+   "base": "rex",
+   "look": {
+    "skin": "#d8a878",
+    "hair": "#14100e",
+    "hairStyle": "messy",
+    "top": "#3a3a5a",
+    "bottom": "#3a3a48",
+    "shoes": "#ff3b4e",
+    "eyes": "#3a2a1a",
+    "extras": [
+     "angry",
+     "eyebags"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_hottake_2",
+   "base": "mona",
+   "look": {
+    "skin": "#f6d1b0",
+    "hair": "#c0602a",
+    "hairStyle": "bob",
+    "top": "#8a2a3a",
+    "bottom": "#5a4a3a",
+    "shoes": "#8a2a3a",
+    "eyes": "#3a6a5a",
+    "extras": [
+     "glasses"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_hottake_3",
+   "base": "mona",
+   "look": {
+    "skin": "#f6d1b0",
+    "hair": "#c0602a",
+    "hairStyle": "bob",
+    "top": "#8a2a3a",
+    "bottom": "#5a4a3a",
+    "shoes": "#8a2a3a",
+    "eyes": "#3a6a5a",
+    "extras": [
+     "glasses"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_hottake_4",
+   "base": "theo",
+   "look": {
+    "skin": "#9a6440",
+    "hair": "#1a1210",
+    "hairStyle": "short",
+    "hat": "beanie",
+    "hatColor": "#2a3a6a",
+    "top": "#2a2a34",
+    "bottom": "#4a3a2a",
+    "shoes": "#5a3a2a",
+    "eyes": "#2a1a12",
+    "extras": [
+     "glasses",
+     "stubble"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_hottake_5",
+   "base": "theo",
+   "look": {
+    "skin": "#9a6440",
+    "hair": "#1a1210",
+    "hairStyle": "short",
+    "hat": "beanie",
+    "hatColor": "#c8603a",
+    "top": "#5a2a2a",
+    "bottom": "#4a3a2a",
+    "shoes": "#5a3a2a",
+    "eyes": "#2a1a12",
+    "extras": [
+     "glasses",
+     "stubble"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_hottake_6",
+   "base": "pat",
+   "look": {
+    "skin": "#f0b494",
+    "hair": "#a8a098",
+    "hairStyle": "buzz",
+    "top": "#3a3a5a",
+    "bottom": "#3a4a6a",
+    "shoes": "#5a3a2a",
+    "eyes": "#3a5a7a",
+    "extras": [
+     "stubble"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_hottake_7",
+   "base": "pat",
+   "look": {
+    "skin": "#f0b494",
+    "hair": "#a8a098",
+    "hairStyle": "buzz",
+    "top": "#5a2a2a",
+    "bottom": "#3a4a6a",
+    "shoes": "#5a3a2a",
+    "eyes": "#3a5a7a",
+    "extras": [
+     "stubble"
+    ]
+   }
+  }
+ ],
+ "podcast": [
+  {
+   "file": "portraits/extra_podcast_0",
+   "base": "bryce",
+   "look": {
+    "skin": "#d8a878",
+    "hair": "#8a7a6a",
+    "hairStyle": "swoop",
+    "top": "#2a2a2a",
+    "bottom": "#3a3a48",
+    "shoes": "#f4f4f4",
+    "eyes": "#3a5a4a",
+    "extras": [
+     "headphones"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_podcast_1",
+   "base": "bryce",
+   "look": {
+    "skin": "#d8a878",
+    "hair": "#1a1210",
+    "hairStyle": "swoop",
+    "top": "#4a6a8a",
+    "bottom": "#3a3a48",
+    "shoes": "#f4f4f4",
+    "eyes": "#3a5a4a",
+    "extras": [
+     "headphones"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_podcast_2",
+   "base": "sky",
+   "look": {
+    "skin": "#6e4630",
+    "hair": "#1a1210",
+    "hairStyle": "long",
+    "top": "#8a6a4a",
+    "bottom": "#a8846a",
+    "shoes": "#ffd23f",
+    "eyes": "#2a1a12",
+    "extras": [
+     "headphones",
+     "hoops"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_podcast_3",
+   "base": "sky",
+   "look": {
+    "skin": "#6e4630",
+    "hair": "#1a1210",
+    "hairStyle": "long",
+    "top": "#8a6a4a",
+    "bottom": "#a8846a",
+    "shoes": "#ffd23f",
+    "eyes": "#2a1a12",
+    "extras": [
+     "headphones",
+     "hoops"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_podcast_4",
+   "base": "gus",
+   "look": {
+    "skin": "#f0d0b0",
+    "hair": "#8a7a6a",
+    "hairStyle": "short",
+    "hat": "cap",
+    "hatColor": "#8b2740",
+    "top": "#8a6a4a",
+    "bottom": "#4a4a3a",
+    "shoes": "#5a3a2a",
+    "eyes": "#4a5a3a",
+    "extras": [
+     "stubble"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_podcast_5",
+   "base": "gus",
+   "look": {
+    "skin": "#f0d0b0",
+    "hair": "#8a7a6a",
+    "hairStyle": "short",
+    "hat": "cap",
+    "hatColor": "#3a6a4a",
+    "top": "#4a6a8a",
+    "bottom": "#4a4a3a",
+    "shoes": "#5a3a2a",
+    "eyes": "#4a5a3a",
+    "extras": [
+     "stubble"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_podcast_6",
+   "base": "val",
+   "look": {
+    "skin": "#e8b48f",
+    "hair": "#2a1a12",
+    "hairStyle": "pony",
+    "top": "#3a4a6a",
+    "bottom": "#2a2a34",
+    "shoes": "#3a3a3a",
+    "eyes": "#3a2a1a",
+    "extras": [
+     "headphones"
+    ]
+   }
+  },
+  {
+   "file": "portraits/extra_podcast_7",
+   "base": "val",
+   "look": {
+    "skin": "#e8b48f",
+    "hair": "#2a1a12",
+    "hairStyle": "pony",
+    "top": "#3a4a6a",
+    "bottom": "#2a2a34",
+    "shoes": "#3a3a3a",
+    "eyes": "#3a2a1a",
+    "extras": [
+     "headphones"
+    ]
+   }
+  }
+ ]
+}

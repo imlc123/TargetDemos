@@ -163,7 +163,7 @@ def check():
     """Every player/NPC spawn must sit on a walkable tile."""
     js = ("Promise.all([import('./js/data/levels.js'), import('./js/art/props.js')]).then(([m, p]) => console.log(JSON.stringify({"
           "types: Object.fromEntries(Object.entries(p.PROP_TYPES).map(([k, v]) => [k, [v.place, v.foot || 0]])),"
-          "levels: m.LEVELS.map(l => ({id: l.id, map: l.map, player: l.player, npcs: l.npcs, props: l.props || [], calm: l.calm || [], spawnPoints: l.spawnPoints || []}))})))")
+          "levels: m.LEVELS.map(l => ({id: l.id, map: l.map, player: l.player, npcs: l.npcs, props: l.props || [], calm: l.calm || [], spawnPoints: l.spawnPoints || [], sidelines: l.sidelines || []}))})))")
     out = json.loads(subprocess.run(['node', '-e', js], capture_output=True, text=True, check=True).stdout)
     types = out['types']
     bad = 0
@@ -174,7 +174,7 @@ def check():
             if len(r) != w:
                 print(f"{lv['id']}: row {i} has {len(r)} tiles, expected {w}")
                 bad += 1
-        spots = [('player', lv['player'])] + [(n.get('who') or n['type'], n['at']) for n in lv['npcs']] + [('spawn', p) for p in lv['spawnPoints']]
+        spots = [('player', lv['player'])] + [(n.get('who') or n['type'], n['at']) for n in lv['npcs']] + [('spawn', p) for p in lv['spawnPoints']] + [('sideline', p) for p in lv['sidelines']]
         spots += [('tea', p) for p in lv['calm']]
         taken = {tuple(p) for _, p in spots}
         for pr in lv['props']:

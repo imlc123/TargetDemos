@@ -46,6 +46,8 @@ A black-pilled doom-scroller crawls out of The Feed's giant screen with every po
 
 The people it pulls back in come from every block, Hot-Take Posters and Podcast Gurus included.
 
+To keep the plaza readable, the boss holds at most three people in the feed at a time. Anyone you free cheers for a moment, then pops up to the street above the big screen and cheers from the sidelines (walk up there to chat with them). When the sidelines are full, extra people head home. Beat the boss and the whole crowd comes down to celebrate.
+
 If the Algorithm meter fills, you restart the current phase, not the whole fight. Three cracks and the boss is freed too. You can talk to them afterwards.
 
 ### Your hero
@@ -106,6 +108,16 @@ GEMINI_API_KEY=your-key python3 tools/gen_art.py
 
 Each generated image is cut out from a magenta background, shrunk with a box filter, reduced to a small palette and given a dark outline. Gray "locked" versions keep their neon colors.
 
+### Portraits for the extra people (no API needed)
+
+The unnamed extras get portraits remixed from the named characters' Gemini portraits:
+
+```bash
+python3 tools/remix_portraits.py
+```
+
+It gives each named character's portrait a new shirt, hair and hat color (and mirrors every other one), making 8 faces per character type. Faces and skin are left untouched. It writes `assets/img/portraits/extra_<type>_<n>.png` and `assets/img/portraits/extras.json`, which holds the matching walking-sprite colors for each face. Extras prefer remixes of characters who aren't in the same level. Check `tools/raw/remix_preview.png` after a run. If a portrait recolors badly, add the character to `OVERRIDES` at the top of the script to skip an area or keep a color. If `extras.json` is missing, extras fall back to code-drawn portraits.
+
 ## Editing the game
 
 - **Characters and their conversations:** `js/data/characters.js` (names, looks, lines, the reply choice, hints and follow-ups; `{name}`, `{they}`, `{them}`, `{their}`, `{theyre}` become the hero's name and pronouns)
@@ -114,7 +126,7 @@ Each generated image is cut out from a magenta background, shrunk with a box fil
 - **Level maps and who's in them:** `js/data/levels.js` (the map legend is at the top of the file; stack 3 rows of `W` and the generated building fronts are placed over them automatically). The Reply Row and Podcast Pier maps come from `tools/genmaps.py`; run `python3 tools/genmaps.py --check` after editing any level to make sure every spawn point, tea cup and prop sits on a walkable tile.
 - **Ways to calm down:** the `calm` list of each level (tea cups) and `b` tiles in the map (benches); amounts are in the `calm` block of `TUNING`
 - **Difficulty per level:** `difficulty` in each level (it scales how fast the meter fills and how long the openings last)
-- **The boss:** tuning is in the `boss` block of `TUNING` in `js/config.js`; who gets pulled back in each phase is the `waves` list of the last level in `js/data/levels.js`; the boss's look is `BOSS_LOOK` in `js/art/boss.js`; their lines are `LINES.boss` in `js/data/lines.js`
+- **The boss:** tuning is in the `boss` block of `TUNING` in `js/config.js`; who gets pulled back in each phase is the `waves` list of the last level in `js/data/levels.js`, and where freed people cheer is its `sidelines` list; the boss's look is `BOSS_LOOK` in `js/art/boss.js`; their lines are `LINES.boss` in `js/data/lines.js`
 - **Difficulty (speeds, timings, meter):** the `TUNING` object in `js/config.js`
 - **The two newest types:** `js/entities/HotTakePoster.js` and `js/entities/PodcastGuru.js`, tuned in the `hottake` and `podcast` blocks of `TUNING`
 - **Pixel art:** `js/art/sprites.js` (characters, painted part by part in three facings with colored outlines and hue-shifted shading), `js/art/portraits.js` (64x64 dialogue portraits), `js/art/tiles.js` (ground, water, sand, boardwalk, cobblestones and the six building styles), `js/art/intro.js` and `js/art/introPanels.js` (the bedroom and the intro's close-up panels), `js/art/boss.js` (the boss)
@@ -138,5 +150,6 @@ js/systems/           Algorithm meter, touch controls, sound, save data, hero, p
 js/art/               art drawn in code (pixels, sprites, portraits, tiles, props, intro)
 js/data/              levels, characters and lines
 assets/img/           generated pixel art (portraits, intro, cards, facades, props, ui)
-tools/                gen_art.py + art_manifest.py (Gemini art), genmaps.py (maps and checks)
+tools/                gen_art.py + art_manifest.py (Gemini art), remix_portraits.py (extras'
+                      portraits, no API), genmaps.py (maps and checks)
 ```

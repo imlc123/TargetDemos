@@ -17,6 +17,8 @@ export class BootScene extends Phaser.Scene {
   // Anything missing simply falls back to the code-drawn art.
   preload() {
     this.load.json('artManifest', 'assets/img/manifest.json');
+    // looks for the extra people's remixed portraits (made by tools/remix_portraits.py)
+    this.load.json('extraPortraits', 'assets/img/portraits/extras.json');
     this.load.once('filecomplete-json-artManifest', (key, type, data) => {
       for (const f of (data && data.files) || []) this.load.image(`gen:${f.replace(/\.png$/, '')}`, `assets/img/${f}`);
     });

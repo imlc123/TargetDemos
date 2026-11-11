@@ -511,12 +511,31 @@ export class GameScene extends Phaser.Scene {
     return best;
   }
 
+  // Boss fight: the next free spot on the street above the screen (or null when full).
+  claimSideline(npc) {
+    if (!this.sidelineSlots) {
+      this.sidelineSlots = (this.level.sidelines || []).map(([x, y]) => ({ x: x * TILE + 8, y: y * TILE + 14, who: null }));
+    }
+    const slot = this.sidelineSlots.find((sl) => !sl.who || !sl.who.scene);
+    if (slot) slot.who = npc;
+    return slot || null;
+  }
+
+  // Takes a person out of the level for good (they went home).
+  removeNpc(npc) {
+    this.npcs = this.npcs.filter((n) => n !== npc);
+    if (this.talkTarget === npc) this.talkTarget = null;
+    if (npc.flowerKey) this.releaseFlower(npc);
+    for (const o of [npc.shadow, npc.bubble, npc.openTag, npc.phone, npc.glow]) if (o && o.scene) o.destroy();
+    npc.destroy();
+  }
+
   findTalkTarget() {
     const p = this.player;
     let best = null;
     let bd = TUNING.talk.range;
     for (const n of this.npcs) {
-      if (n.state !== 'freed' || n.talking || n.mode === 'celebrate') continue;
+      if (n.state !== 'freed' || n.talking || n.mode === 'celebrate' || n.mode === 'leaving') continue;
       const d = Math.hypot(n.x - p.x, n.y - p.y);
       if (d < bd) { bd = d; best = n; }
     }
@@ -741,6 +760,7 @@ export class GameScene extends Phaser.Scene {
   onBossHurt(cracks) {
     // each crack in the boss's phone brings a bit of the city back
     this.props.forEach((prop, i) => { if (prop.type !== 'eye' && i % 3 === cracks - 1) prop.transform(); });
+    for (const n of this.npcs) if (n.mode === 'crowd') n.cheerT = 1.6;
   }
 
   onBossDefeated(boss) {
@@ -758,6 +778,25 @@ export class GameScene extends Phaser.Scene {
     this.cleared = true;
     this.meter.frozen = true;
     this.npcs.forEach((n) => n.state === 'locked' && n.free());
+    // the crowd comes down from the sidelines to celebrate
+    const fans = this.npcs.filter((n) => n.mode === 'crowd' || n.mode === 'leaving');
+    fans.forEach((n, i) => {
+      const a = (i / Math.max(1, fans.length)) * Math.PI * 2;
+      const r = 52 + (i % 2) * 22;
+      const spot = this.randomWalkableNear(x + Math.cos(a) * r, y + 24 + Math.sin(a) * r * 0.6, 1) || { x, y: y + 30 };
+      this.time.delayedCall(600 + i * 90, () => {
+        if (!n.scene) return;
+        this.tweens.killTweensOf([n, n.shadow]);
+        this.fx.puff.explode(4, n.x, n.y - 10);
+        n.body.enable = true;
+        n.body.reset(spot.x, spot.y);
+        n.setAlpha(1);
+        n.shadow.setAlpha(1);
+        n.mode = 'celebrate';
+        n.modeT = 1.6;
+        this.fx.heart.explode(2, spot.x, spot.y - 26);
+      });
+    });
     this.time.delayedCall(2600, () => this.levelClear());
   }
 

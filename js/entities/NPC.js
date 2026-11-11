@@ -206,7 +206,7 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     this.say(pick(this.lines.freed), 3.4, 'freed');
     this.talkT = rand(5, 8);
     this.mode = 'celebrate';
-    this.modeT = 1.8;
+    this.modeT = s.level.boss ? 1.2 : 1.8;
     s.onNpcFreed(this);
   }
 
@@ -272,6 +272,17 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
         break;
       case 'walk':
         this.walkTo(dt);
+        break;
+      case 'leaving':
+        this.setVelocity(0, 0);
+        break;
+      case 'crowd':
+        // cheering from the sidelines of the boss fight
+        this.setVelocity(0, 0);
+        this.look = { facing: 'down', flip: false };
+        this.cheerT = Math.max(0, (this.cheerT || 0) - dt);
+        if (this.cheerT > 0 || Math.sin(this.scene.time.now / 260 + this.x) > 0.93) this.pose = 'cheer';
+        if (this.cheerT > 0 && Math.random() < dt * 2) this.scene.fx.heart.explode(1, this.x, this.y - 30);
         break;
       default:
         this.pickMode();
@@ -354,8 +365,43 @@ export class NPC extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  // Boss fight: get out of the way and cheer from the street above the screen.
+  goToSideline() {
+    const s = this.scene;
+    const slot = s.claimSideline(this);
+    this.mode = 'leaving';
+    this.setVelocity(0, 0);
+    if (!slot) {
+      // the sidelines are full: wave and go home
+      this.say(pick(LINES.home), 1.4, 'freed');
+      this.pose = 'wave';
+      s.tweens.add({ targets: [this, this.shadow], alpha: 0, delay: 700, duration: 400, onComplete: () => s.removeNpc(this) });
+      return;
+    }
+    this.say(pick(LINES.sideline), 1.2, 'freed');
+    s.tweens.add({
+      targets: [this, this.shadow], alpha: 0, delay: 500, duration: 300,
+      onComplete: () => {
+        if (!this.scene) return;
+        s.fx.puff.explode(5, this.x, this.y - 10);
+        this.body.reset(slot.x, slot.y);
+        this.body.enable = false; // nothing bumps into the crowd
+        this.mode = 'crowd';
+        this.cheerT = 0.8;
+        if (this.bubble) this.bubble.setVisible(false);
+        s.fx.puff.explode(5, slot.x, slot.y - 10);
+        s.tweens.add({ targets: [this, this.shadow], alpha: 1, duration: 300 });
+      },
+    });
+  }
+
   pickMode() {
     const s = this.scene;
+    if (s.level.boss && !s.bossDefeated) {
+      if (this.mode === 'crowd' || this.mode === 'leaving') return;
+      this.goToSideline();
+      return;
+    }
     this.stuckT = 0;
     this.lastPos.set(this.x, this.y);
     this.modeT = 0;

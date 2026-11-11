@@ -95,8 +95,8 @@ export const TUNING = {
   boss: {
     need: [3, 3, 3], // people to free before the shield drops, per phase
     regrowNeed: 2, // if the shield comes back, free this many more
-    spawnEvery: [7, 6, 5], // seconds between extra summons while shielded
-    maxLocked: [3, 4, 4], // most people the boss keeps in the feed at once
+    spawnEvery: [8, 7, 6], // seconds between extra summons while shielded
+    maxLocked: [3, 3, 3], // most people the boss keeps in the feed at once
     openTime: 10, // seconds the shield stays down
     dip: { up: [2.2, 3], warn: 0.7, dip: 2 },
     candleEvery: 3.6,

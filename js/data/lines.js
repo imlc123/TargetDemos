@@ -165,6 +165,8 @@ export const LINES = {
     dodge: ['Sell-off? Never.', 'Not my angle!', 'Can\'t hear you over the news.'],
     defeat: ['...oh. It\'s quiet.', 'Huh. My hands are shaking.'],
   },
+  sideline: ["I'll cheer you on!", 'Go get it!', "I'll be over there!", 'You got this!'],
+  home: ['Heading home. You got this!', 'Going to touch grass!', 'Off to call my mom!'],
   relapse: ['It pulled me back in!', 'Just one more scroll...', 'Noooo, my notifications!', 'I was doing SO well.'],
 };
 

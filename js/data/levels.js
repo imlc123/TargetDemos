@@ -511,6 +511,9 @@ export const LEVELS = [
       { who: [['doom', 'doug'], ['hottake', 'theo'], ['podcast', 'gus'], ['doom', 'priya']], extras: ['doom', 'hottake', 'podcast'] },
     ],
     spawnPoints: [[5, 18], [42, 18], [9, 28], [38, 28], [16, 22], [31, 22], [4, 32], [43, 32]],
+    // where freed people stand and cheer, out of the fight (the street above the big screen)
+    sidelines: [[4, 8], [10, 8], [16, 8], [22, 8], [28, 8], [34, 8], [40, 8], [46, 8],
+      [7, 9], [13, 9], [19, 9], [25, 9], [31, 9], [37, 9], [43, 9], [1, 9]],
     npcs: [],
     props: [
       { type: 'eye', at: [18, 12], scale: 1.5 },
